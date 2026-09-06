@@ -14,7 +14,7 @@ open(base+'/Release','w').write('Origin: KoeTomo+ Repo\nLabel: KoeTomo+ Repo\nSu
 sp='/tmp/kt_ios/dist/source.json'
 src=json.load(open(sp)) if os.path.exists(sp) else {"name":"KoeTomo+ Source","identifier":"com.akun.koetomo.source","apps":[{"bundleIdentifier":"com.akun.koetomo","versions":[]}],"news":[]}
 app=src['apps'][0]; ipa='/tmp/kt_ios/dist/KoeTomoPlus_v%s.ipa'%ver
-v={"version":ver,"date":datetime.date.today().isoformat(),"localizedDescription":open('/tmp/kt_ios/dist/notes_%s.txt'%ver).read().strip() if os.path.exists('/tmp/kt_ios/dist/notes_%s.txt'%ver) else "更新","downloadURL":"https://github.com/haizarakun/koetomo-ios/releases/download/v%s/KoeTomoPlus_v%s.ipa"%(ver,ver),"size":os.path.getsize(ipa),"minOSVersion":"14.0"}
+v={"version":ver,"date":datetime.date.today().isoformat(),"localizedDescription":open('/tmp/kt_ios/dist/notes_%s.txt'%ver).read().strip() if os.path.exists('/tmp/kt_ios/dist/notes_%s.txt'%ver) else "更新","downloadURL":"https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/ipa/KoeTomoPlus_v%s.ipa"%ver,"size":os.path.getsize(ipa),"minOSVersion":"14.0"}
 app['versions']=[v]+[x for x in app.get('versions',[]) if x.get('version')!=ver]
 json.dump(src,open(sp,'w'),ensure_ascii=False,indent=1)
 print('dist ok', ver)

@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <img alt="version" src="https://img.shields.io/badge/version-0.4.0-blue">
+  <img alt="version" src="https://img.shields.io/badge/version-1.00%20beta-blue">
   <img alt="platform" src="https://img.shields.io/badge/platform-iOS%2014.0%2B-green">
   <img alt="install" src="https://img.shields.io/badge/install-Sileo%20%7C%20TrollStore%20%7C%20SideStore-purple">
   <img alt="license" src="https://img.shields.io/badge/license-source--available-lightgrey">
@@ -18,7 +18,7 @@
 > 公式に公開されていない API と通信するため、対象サービスの利用規約に抵触する可能性があります。
 > 必ず [DISCLAIMER.md](DISCLAIMER.md) を読み、**自己責任**でご利用ください。
 >
-> 🧪 **iOS 版はテスト段階です。** App Store では配布していません（できません）。脱獄機・TrollStore・SideStore 向けの配布です。
+> 🧪 **iOS 版はベータ版です。** App Store では配布していません（できません）。脱獄機・TrollStore・SideStore 向けの配布です。
 
 ---
 
@@ -32,7 +32,7 @@ Android 版の Java で書かれていた API 層を JavaScript に移植し、�
 - **Mac 不要でビルド** — Linux 上の Theos でビルドしています（ビルドは作者のみ。[ライセンス](#ライセンス)参照）
 - **ソース公開** — 何をしているアプリか、誰でも読んで確認できます
 
-## 主な機能（v0.4.0）
+## 主な機能（v1.00 beta）
 
 - ログイン（メール／トークン）、新規登録、パスワード変更、SMS／メール認証
 - タイムライン（つぶやく／話そう／フォロー中）、投稿の詳細、いいね、返信、投稿の作成・削除、画像・音声つき投稿
@@ -89,10 +89,10 @@ TrollStore は脱獄なしで IPA を**永久署名**して入れられる仕組
 1. iPhone の **Safari** で次の URL を開き、IPA をダウンロード（「ダウンロード」を許可）
 
    ```
-   https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/ipa/KoeTomoPlus_v0.4.0.ipa
+   https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/ipa/KoeTomoPlus_v1.00.ipa
    ```
 
-2. 「ファイル」アプリ → ダウンロード → `KoeTomoPlus_v0.4.0.ipa` をタップ → 共有 → **TrollStore**
+2. 「ファイル」アプリ → ダウンロード → `KoeTomoPlus_v1.00.ipa` をタップ → 共有 → **TrollStore**
    （TrollStore を開き「Install IPA」でファイルを選んでもよい）
 3. 「Install」をタップ。ホーム画面に **KoeTomo+** が追加されます
 
@@ -191,7 +191,7 @@ talks to a non-public API, which may violate the service's Terms of Service. **U
 
 **Install (pick one):**
 - **Jailbroken (rootless or rootful):** add `https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/repo/` as a source in Sileo or Zebra and install *KoeTomo+*.
-- **TrollStore (iOS 14.0–16.6.1 / 17.0):** download `https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/ipa/KoeTomoPlus_v0.4.0.ipa` in Safari and open it with TrollStore.
+- **TrollStore (iOS 14.0–16.6.1 / 17.0):** download `https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/ipa/KoeTomoPlus_v1.00.ipa` in Safari and open it with TrollStore.
 - **SideStore / AltStore (no jailbreak):** add `https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/source.json` as a source; free Apple IDs need a re-sign every 7 days.
 
 **Not available on iOS:** in-app coin purchase (buy on the official app or the Android build; coins are shared).
