@@ -1,6 +1,7 @@
 #import "KTAppDelegate.h"
 #import "KTViewController.h"
 #import <AVFoundation/AVFoundation.h>
+#import "KTNotify.h"
 
 @implementation KTAppDelegate
 
@@ -10,12 +11,16 @@
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayAndRecord
                                      withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionMixWithOthers
                                            error:&err];
+    [KTNotify registerBackgroundTask];
     self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
     self.window.backgroundColor = [UIColor colorWithRed:0.07 green:0.08 blue:0.10 alpha:1];
     self.window.rootViewController = [[KTViewController alloc] init];
     [self.window makeKeyAndVisible];
     return YES;
 }
+
+- (void)applicationDidEnterBackground:(UIApplication *)application { [KTNotify scheduleRefresh]; }
+- (void)applicationWillEnterForeground:(UIApplication *)application { [UIApplication sharedApplication].applicationIconBadgeNumber = 0; }
 
 - (BOOL)application:(UIApplication *)app openURL:(NSURL *)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id> *)options {
     KTViewController *vc = (KTViewController *)self.window.rootViewController;

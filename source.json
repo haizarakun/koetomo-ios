@@ -10,7 +10,7 @@
      "date": "2026-09-06",
      "localizedDescription": "iOS 版の最初のベータ版。応援トーク・マッチング・ランダム通話（DIVE）・コイン／ポイント履歴・装飾・SMS／メール認証・新規登録・ユーザー設定を移植し、Android 版の機能が一通り揃いました（コインの購入は非対応）。Sileo は rootless / rootful 両対応、インストール後にアイコンが自動で出ます。",
      "downloadURL": "https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/ipa/KoeTomoPlus_v1.00.ipa",
-     "size": 991147,
+     "size": 1017376,
      "minOSVersion": "14.0"
     }
    ]

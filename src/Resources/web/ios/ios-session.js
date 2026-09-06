@@ -591,6 +591,6 @@
     },
     _state: state,
     extend: function(h){ Object.keys(h || {}).forEach(function(k){ handlers[k] = h[k]; }); },
-    _internals: { state: state, handlers: handlers, http: http, request: request, request2: request2, httpApi2: httpApi2, okResult: okResult, okList: okList, jsonStatus: jsonStatus, native: native, log: log, nowStr: nowStr, pref: pref, ensureDefines: ensureDefines, iconUrl: iconUrl, voiceUrl: voiceUrl, firstArray: firstArray, firstStr: firstStr, extractError: extractError, postsResult: postsResult, normalizePosts: normalizePosts, resolveNames: resolveNames, nameOf: nameOf, iconOf: iconOf, APP_VERSION: APP_VERSION, BASE: BASE, BASE2: BASE2 }
+    _internals: { state: state, handlers: handlers, _setToken: setToken, _setUser: setUser, deviceUid: deviceUid, http: http, request: request, request2: request2, httpApi2: httpApi2, okResult: okResult, okList: okList, jsonStatus: jsonStatus, native: native, log: log, nowStr: nowStr, pref: pref, ensureDefines: ensureDefines, iconUrl: iconUrl, voiceUrl: voiceUrl, firstArray: firstArray, firstStr: firstStr, extractError: extractError, postsResult: postsResult, normalizePosts: normalizePosts, resolveNames: resolveNames, nameOf: nameOf, iconOf: iconOf, APP_VERSION: APP_VERSION, BASE: BASE, BASE2: BASE2 }
   };
 })();

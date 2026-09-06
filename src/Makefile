@@ -8,7 +8,7 @@ include $(THEOS)/makefiles/common.mk
 APPLICATION_NAME = KoeTomoPlus
 
 KoeTomoPlus_FILES = $(wildcard Sources/*.m)
-KoeTomoPlus_FRAMEWORKS = UIKit WebKit Security Foundation AVFoundation AudioToolbox
+KoeTomoPlus_FRAMEWORKS = UIKit WebKit Security Foundation AVFoundation AudioToolbox UserNotifications BackgroundTasks LocalAuthentication
 KoeTomoPlus_CFLAGS = -fobjc-arc -Wno-deprecated-declarations
 KoeTomoPlus_CODESIGN_FLAGS = -SResources/entitlements.plist
 

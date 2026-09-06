@@ -3,6 +3,20 @@
 #import <AVFoundation/AVFoundation.h>
 #import <AudioToolbox/AudioToolbox.h>
 #import <CommonCrypto/CommonCrypto.h>
+#import <sys/sysctl.h>
+#import <LocalAuthentication/LocalAuthentication.h>
+#import "KTIntegrity.h"
+#import "KTSecrets.h"
+#import "KTNotify.h"
+
+// ===== AES-GCM (CommonCrypto の CCCryptorGCM SPI。ヘッダに無いので宣言する) =====
+extern CCCryptorStatus CCCryptorGCMOneshotEncrypt(CCAlgorithm alg, const void *key, size_t keyLength, const void *iv, size_t ivLen, const void *aData, size_t aDataLen, const void *dataIn, size_t dataInLength, void *cipherOut, void *tagOut, size_t tagLength) __attribute__((weak_import));
+extern CCCryptorStatus CCCryptorGCM(CCOperation op, CCAlgorithm alg, const void *key, size_t keyLength, const void *iv, size_t ivLen, const void *aData, size_t aDataLen, const void *dataIn, size_t dataInLength, void *dataOut, void *tagOut, size_t *tagLength) __attribute__((weak_import));
+static CCCryptorStatus ktGCMEncrypt(const void *key, size_t keyLen, const void *iv, size_t ivLen, const void *pt, size_t ptLen, void *ct, void *tag, size_t *tagLen) {
+    if (CCCryptorGCMOneshotEncrypt != NULL) return CCCryptorGCMOneshotEncrypt(kCCAlgorithmAES, key, keyLen, iv, ivLen, NULL, 0, pt, ptLen, ct, tag, *tagLen);
+    if (CCCryptorGCM != NULL) return CCCryptorGCM(kCCEncrypt, kCCAlgorithmAES, key, keyLen, iv, ivLen, NULL, 0, pt, ptLen, ct, tag, tagLen);
+    return kCCUnimplemented;
+}
 
 // ===== Keychain (Android の SecureStore/Keystore 相当) =====
 static NSString *const kKeychainService = @"com.akun.koetomo";
@@ -82,6 +96,48 @@ static NSString *sigV4(NSString *secret, NSString *day, NSString *region, NSStri
     NSData *sig = hmac256(k, stringToSign); return hexOf(sig.bytes, sig.length);
 }
 
+// ===== 難読化した秘密値(KOETOMO_ENC_KEY / X client id)の復元: build_ios.sh が KTSecrets.h に XOR 分割して書く =====
+static NSString *ktSecret(const unsigned char *a, const unsigned char *b, size_t n) {
+    if (n == 0) return @"";
+    NSMutableData *d = [NSMutableData dataWithLength:n]; unsigned char *p = d.mutableBytes;
+    for (size_t i = 0; i < n; i++) p[i] = a[i] ^ b[i];
+    return [[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding] ?: @"";
+}
+static NSString *koeEncKeyB64(void) { return ktSecret(kKTEncA, kKTEncB, sizeof(kKTEncA) - 1); }
+static NSString *xClientId(void) { return ktSecret(kKTXA, kKTXB, sizeof(kKTXA) - 1); }
+static NSString *b64url(NSData *d) { return [[[[d base64EncodedStringWithOptions:0] stringByReplacingOccurrencesOfString:@"+" withString:@"-"] stringByReplacingOccurrencesOfString:@"/" withString:@"_"] stringByReplacingOccurrencesOfString:@"=" withString:@""]; }
+
+// ===== 配布経路の判定(更新先を選ぶため) =====
+static NSString *installMethod(void) {
+    NSString *bp = [NSBundle mainBundle].bundlePath ?: @"";
+    if ([bp hasPrefix:@"/var/jb/"] || [bp hasPrefix:@"/Applications/"]) return @"sileo";
+    if ([[NSFileManager defaultManager] fileExistsAtPath:[bp stringByAppendingPathComponent:@"_TrollStore"]]) return @"trollstore";
+    return @"sidestore";
+}
+
+// ===== 不正防止: 同梱 web 資産の改変・再パッケージ検知 / デバッガ検知 =====
+// ビルド時に build_ios.sh が KTIntegrity.h に各ファイルの SHA-256 を書き込む。起動時に照合し、合わなければ画面を出さない。
+static NSString *integrityProblem(void) {
+    NSBundle *b = [NSBundle mainBundle];
+    if (![(b.bundleIdentifier ?: @"") isEqualToString:@"com.akun.koetomo"]) return @"bundle";
+    NSString *ver = b.infoDictionary[@"CFBundleShortVersionString"] ?: @"";
+    if (![ver isEqualToString:@KT_EXPECTED_VERSION]) return @"version";
+    NSString *base = [b.resourcePath stringByAppendingPathComponent:@"web"];
+    for (NSUInteger i = 0; i < sizeof(kKTIntegrity) / sizeof(kKTIntegrity[0]); i++) {
+        NSString *rel = [NSString stringWithUTF8String:kKTIntegrity[i].path];
+        NSData *d = [NSData dataWithContentsOfFile:[base stringByAppendingPathComponent:rel]];
+        if (!d) return rel;
+        if (![sha256Hex(d) isEqualToString:[NSString stringWithUTF8String:kKTIntegrity[i].sha256]]) return rel;
+    }
+    return nil;
+}
+static BOOL debuggerAttached(void) {
+    struct kinfo_proc info; size_t size = sizeof(info); memset(&info, 0, size);
+    int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid() };
+    if (sysctl(mib, 4, &info, &size, NULL, 0) != 0) return NO;
+    return (info.kp_proc.p_flag & P_TRACED) != 0;
+}
+
 // ===== 同梱 web 資産を koetomo://app/ で配信する(file:// だと getUserMedia 等の secure context 判定で弾かれるため) =====
 @interface KTSchemeHandler : NSObject <WKURLSchemeHandler>
 @end
@@ -117,6 +173,13 @@ static NSString *sigV4(NSString *secret, NSString *day, NSString *region, NSStri
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor colorWithRed:0.07 green:0.08 blue:0.10 alpha:1];
 
+    NSString *problem = integrityProblem();
+    if (problem || debuggerAttached()) {
+        ktLog([NSString stringWithFormat:@"%@  [SEC] 起動拒否: %@", ktNow(), problem ?: @"debugger"]);
+        [self showBlocked:problem ? @"このアプリは改変されているため起動できません。\n配布元（GitHub haizarakun/koetomo-ios）から入れ直してください。" : @"デバッガが接続されているため起動できません。"];
+        return;
+    }
+
     NSURLSessionConfiguration *sc = [NSURLSessionConfiguration defaultSessionConfiguration];
     sc.timeoutIntervalForRequest = 35;
     sc.timeoutIntervalForResource = 120;
@@ -132,7 +195,7 @@ static NSString *sigV4(NSString *secret, NSString *day, NSString *region, NSStri
     WKUserContentController *ucc = [WKUserContentController new];
     [ucc addScriptMessageHandler:self name:@"koe"];
     // ブリッジ(AndroidApi 互換)と JS 版セッション(API 層)を、ページの JS より先に注入する
-    for (NSString *name in @[@"ios-bridge.js", @"ios-session.js", @"ios-session-ext3.js", @"ios-session-ext4.js"]) {
+    for (NSString *name in @[@"ios-bridge.js", @"ios-session.js", @"ios-session-ext3.js", @"ios-session-ext4.js", @"ios-session-ext5.js"]) {
         NSString *path = [[NSBundle mainBundle] pathForResource:[name stringByDeletingPathExtension] ofType:@"js" inDirectory:@"web/ios"];
         NSString *src = path ? [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil] : nil;
         if (src.length) {
@@ -158,6 +221,14 @@ static NSString *sigV4(NSString *secret, NSString *day, NSString *region, NSStri
     NSURL *index = [NSURL URLWithString:@"koetomo://app/index.html"];
     ktLog([NSString stringWithFormat:@"%@  [BOOT] load %@", ktNow(), index.absoluteString]);
     [self.webView loadRequest:[NSURLRequest requestWithURL:index]];
+}
+
+- (void)showBlocked:(NSString *)msg {
+    UILabel *l = [UILabel new];
+    l.text = [@"🔒 KoeTomo+\n\n" stringByAppendingString:msg];
+    l.textColor = [UIColor whiteColor]; l.numberOfLines = 0; l.textAlignment = NSTextAlignmentCenter; l.font = [UIFont systemFontOfSize:16];
+    l.frame = CGRectInset(self.view.bounds, 28, 60); l.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    [self.view addSubview:l];
 }
 
 - (UIStatusBarStyle)preferredStatusBarStyle { return UIStatusBarStyleLightContent; }
@@ -206,6 +277,18 @@ static BOOL safeToken(NSString *s) { if (![s isKindOfClass:[NSString class]] || 
     }
     if ([m isEqualToString:@"__clear_log"]) { @synchronized (gLog) { [gLog removeAllObjects]; } [self resolve:callId result:@{@"ok": @YES}]; return; }
     if ([m isEqualToString:@"__open_url"]) { [self openExternal:a.firstObject]; [self resolve:callId result:@{@"ok": @YES}]; return; }
+    if ([m isEqualToString:@"__auth_biometric"]) {
+        LAContext *ctx = [LAContext new]; NSError *e = nil;
+        if (![ctx canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&e]) { [self resolve:callId result:@{@"ok": @NO, @"reason": @"unavailable"}]; return; }
+        [ctx evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:@"KoeTomo+ のロックを解除" reply:^(BOOL success, NSError *error) {
+            [self resolve:callId result:@{@"ok": @(success), @"reason": success ? @"" : (error.localizedDescription ?: @"failed")}];
+        }];
+        return;
+    }
+    if ([m isEqualToString:@"__notify"]) { [KTNotify showLocal:strArg(a, 0) body:strArg(a, 1)]; [self resolve:callId result:@{@"ok": @YES}]; return; }
+    if ([m isEqualToString:@"__sha256_b64url"]) { NSString *v = strArg(a, 0) ?: @""; unsigned char out[CC_SHA256_DIGEST_LENGTH]; NSData *d = [v dataUsingEncoding:NSASCIIStringEncoding] ?: [NSData data]; CC_SHA256(d.bytes, (CC_LONG)d.length, out); [self resolve:callId result:@{@"ok": @YES, @"value": b64url([NSData dataWithBytes:out length:sizeof(out)])}]; return; }
+    if ([m isEqualToString:@"__koe_encrypt"]) { [self resolve:callId result:[self koeEncrypt:strArg(a, 0)]]; return; }
+    if ([m isEqualToString:@"__open_update"]) { [self openUpdate:strArg(a, 0) fallback:strArg(a, 1) callId:callId]; return; }
     if ([m isEqualToString:@"__share_text"]) {
         NSString *t = strArg(a, 0) ?: @"";
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -231,6 +314,43 @@ static BOOL safeToken(NSString *s) { if (![s isKindOfClass:[NSString class]] || 
     NSURL *u = [NSURL URLWithString:url];
     if (!u) return;
     dispatch_async(dispatch_get_main_queue(), ^{ [[UIApplication sharedApplication] openURL:u options:@{} completionHandler:nil]; });
+}
+
+// 公式 KoetomoEncryptor と同一: AES-256-GCM(IV 12 byte, tag 16 byte) で X アクセストークンを暗号化し etat/vt/gt を返す。
+// CommonCrypto に GCM の公開 API が無いので、iOS 13+ の CryptoKit を使えない Objective-C からは Security の SecKey 経由も不可。
+// ここでは AES-CTR + GHASH を自前実装せず、CommonCrypto の非公開だが安定して存在する CCCryptorGCM 系を使う。
+- (NSDictionary *)koeEncrypt:(NSString *)plain {
+    NSString *kb = koeEncKeyB64();
+    if (!kb.length) return @{@"ok": @NO, @"error": @"このビルドでは暗号鍵が未設定です(Xログインは使えません)"};
+    NSData *key = [[NSData alloc] initWithBase64EncodedString:kb options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    if (!key || (key.length != 16 && key.length != 32) || ![plain isKindOfClass:[NSString class]]) return @{@"ok": @NO, @"error": @"鍵の形式が不正です"};
+    NSMutableData *iv = [NSMutableData dataWithLength:12]; if (SecRandomCopyBytes(kSecRandomDefault, 12, iv.mutableBytes) != 0) return @{@"ok": @NO, @"error": @"乱数生成失敗"};
+    NSData *pt = [plain dataUsingEncoding:NSUTF8StringEncoding];
+    NSMutableData *ct = [NSMutableData dataWithLength:pt.length]; unsigned char tag[16]; size_t tagLen = 16;
+    CCCryptorStatus st = ktGCMEncrypt(key.bytes, key.length, iv.bytes, iv.length, pt.bytes, pt.length, ct.mutableBytes, tag, &tagLen);
+    if (st != kCCSuccess) return @{@"ok": @NO, @"error": [NSString stringWithFormat:@"暗号化失敗(%d)", (int)st]};
+    return @{@"ok": @YES, @"etat": [ct base64EncodedStringWithOptions:0], @"vt": [iv base64EncodedStringWithOptions:0], @"gt": [[NSData dataWithBytes:tag length:tagLen] base64EncodedStringWithOptions:0]};
+}
+
+// 更新先を配布経路ごとに開く: Sileo(パッケージ画面) / TrollStore(IPA 直接インストール) / SideStore・AltStore(IPA 直接インストール)。
+// 開けるスキームが無ければ README(https) へ。ここで受け付ける URL は固定パターンだけ(任意スキーム起動はさせない)。
+- (void)openUpdate:(NSString *)ipa fallback:(NSString *)fallback callId:(NSString *)callId {
+    NSString *method = installMethod();
+    NSMutableArray<NSString *> *cands = [NSMutableArray new];
+    BOOL ipaOk = [ipa isKindOfClass:[NSString class]] && [ipa hasPrefix:@"https://raw.githubusercontent.com/haizarakun/koetomo-ios/"] && [ipa hasSuffix:@".ipa"];
+    NSString *enc = ipaOk ? [ipa stringByAddingPercentEncodingWithAllowedCharacters:[NSCharacterSet alphanumericCharacterSet]] : nil;
+    if ([method isEqualToString:@"sileo"]) { [cands addObject:@"sileo://package/com.akun.koetomo"]; [cands addObject:@"zbra://packages/com.akun.koetomo"]; }
+    else if ([method isEqualToString:@"trollstore"] && enc) { [cands addObject:[@"apple-magnifier://install?url=" stringByAppendingString:enc]]; }
+    else if (enc) { [cands addObject:[@"sidestore://install?url=" stringByAppendingString:enc]]; [cands addObject:[@"altstore://install?url=" stringByAppendingString:enc]]; }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        UIApplication *app = [UIApplication sharedApplication];
+        for (NSString *c in cands) {
+            NSURL *u = [NSURL URLWithString:c];
+            if (u && [app canOpenURL:u]) { [app openURL:u options:@{} completionHandler:nil]; ktLog([NSString stringWithFormat:@"%@  [UPDATE] open %@ (%@)", ktNow(), u.scheme, method]); [self resolve:callId result:@{@"ok": @YES, @"via": u.scheme}]; return; }
+        }
+        if ([fallback isKindOfClass:[NSString class]] && [fallback hasPrefix:@"https://github.com/haizarakun/"]) { [self openExternal:fallback]; [self resolve:callId result:@{@"ok": @YES, @"via": @"web"}]; return; }
+        [self resolve:callId result:@{@"ok": @NO, @"method": method}];
+    });
 }
 
 - (void)saveFile:(NSArray *)a callId:(NSString *)callId {
@@ -402,7 +522,16 @@ static BOOL safeToken(NSString *s) { if (![s isKindOfClass:[NSString class]] || 
     } else if ([m isEqualToString:@"requestPermissions"]) {
         [[AVAudioSession sharedInstance] requestRecordPermission:^(BOOL granted) {}];
         result = @"1";
-    } else if ([m isEqualToString:@"hasNotifPermission"] || [m isEqualToString:@"hasOverlayPermission"] || [m isEqualToString:@"biometricAvailable"]) {
+    } else if ([m isEqualToString:@"hasNotifPermission"]) {
+        result = [KTNotify permissionGrantedCached] ? @"1" : @"0";
+    } else if ([m isEqualToString:@"requestNotifPermission"]) {
+        [KTNotify requestPermission]; result = @"1";
+    } else if ([m isEqualToString:@"setBackgroundNotify"]) {
+        [KTNotify setEnabled:[a.firstObject respondsToSelector:@selector(boolValue)] && [a.firstObject boolValue]]; result = @"1";
+    } else if ([m isEqualToString:@"biometricAvailable"]) {
+        LAContext *ctx = [LAContext new]; NSError *e = nil;
+        result = [ctx canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&e] ? @"1" : @"0";
+    } else if ([m isEqualToString:@"hasOverlayPermission"]) {
         result = @"0";
     } else if ([m isEqualToString:@"setInCall"]) {
         self.inCall = [a.firstObject respondsToSelector:@selector(boolValue)] && [a.firstObject boolValue];
@@ -415,6 +544,12 @@ static BOOL safeToken(NSString *s) { if (![s isKindOfClass:[NSString class]] || 
         ktLog([NSString stringWithFormat:@"%@  [JS] %@", ktNow(), a.firstObject ?: @""]); result = @"1";
     } else if ([m isEqualToString:@"openUrl"]) {
         [self openExternal:strArg(a, 0)]; result = @"1";
+    } else if ([m isEqualToString:@"xClientId"]) {
+        result = xClientId();
+    } else if ([m isEqualToString:@"xConfigured"]) {
+        result = (xClientId().length > 0 && koeEncKeyB64().length > 0) ? @"1" : @"0";
+    } else if ([m isEqualToString:@"installMethod"]) {
+        result = installMethod();
     } else if ([m isEqualToString:@"appStorageInfo"]) {
         result = jsonString(@{@"ok": @YES, @"cache_bytes": @0, @"data_bytes": @0});
     } else {

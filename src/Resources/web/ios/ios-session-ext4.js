@@ -118,7 +118,7 @@
       if (!uid) uid = Number(x.opponent_id || x.caller_id || x.target_id || x.user_id || 0);
       rows.push({ user_id: uid, name: u ? (u.nickname || u.name || "") : "", icon_url: u ? iconUrl(u.profile_picture_file_path || u.profilePictureFilePath || "") : "", created_at: x.created_at || x.talked_at || x.requested_at || "" });
     });
-    var missing = rows.filter(function(x){ return !x.name && x.user_id > 0; }).map(function(x){ return { user_id: x.user_id }; });
+    var missing = rows.filter(function(x){ return !x.name && x.user_id > 0; }).map(function(x){ return x.user_id; });
     if (missing.length) { try { await resolveNames(missing); } catch (e) {} }
     rows.forEach(function(x){ if (!x.name && x.user_id) { x.name = nameOf(x.user_id); if (!x.icon_url) x.icon_url = iconOf(x.user_id); } });
     return { ok: true, histories: rows };
