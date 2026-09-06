@@ -1,0 +1,40 @@
+Package: com.akun.koetomo
+Name: KoeTomo+
+Description: 声とも(koetomo)の非公式クライアント iOS版(WebView)。ログイン・タイムライン・通話・DM・コミュニティ・応援トーク等に対応。
+Maintainer: Akun
+Author: Akun
+Section: Utilities
+Depends: firmware (>= 14.0)
+Tag: compatible_min::ios14.0
+Depiction: https://github.com/haizarakun/koetomo-ios
+Architecture: iphoneos-arm
+Version: 0.4.0
+Installed-Size: 2780
+Filename: debs/com.akun.koetomo_0.4.0_iphoneos-arm.deb
+Size: 863696
+MD5sum: 1aa15b0d0d78e334a858725a3483ccb6
+SHA1: 2fc954f2d90b6210fddeb77df320fb78cbfc065f
+SHA256: eeb1de4ccb510ac5968f83d4ba52829d59de13bd48af59e4ada2d00b89adc84c
+Depiction: https://github.com/haizarakun/koetomo-ios
+Icon: https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/repo/icon.png
+
+Package: com.akun.koetomo
+Name: KoeTomo+
+Description: 声とも(koetomo)の非公式クライアント iOS版(WebView)。ログイン・タイムライン・通話・DM・コミュニティ・応援トーク等に対応。
+Maintainer: Akun
+Author: Akun
+Section: Utilities
+Depends: firmware (>= 14.0)
+Tag: compatible_min::ios14.0
+Depiction: https://github.com/haizarakun/koetomo-ios
+Architecture: iphoneos-arm64
+Version: 0.4.0
+Installed-Size: 2780
+Filename: debs/com.akun.koetomo_0.4.0_iphoneos-arm64.deb
+Size: 863820
+MD5sum: 80ad86286081fe716a0fe42dbb124f98
+SHA1: 73cfc9ff8cad5b6016a2ac1739199eb1753d5402
+SHA256: a05e2a606b7694b1c9f1bf763d46b9025cdb98a182c5388fab60a72c22f112eb
+Depiction: https://github.com/haizarakun/koetomo-ios
+Icon: https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/repo/icon.png
+

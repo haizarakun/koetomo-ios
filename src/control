@@ -1,0 +1,11 @@
+Package: com.akun.koetomo
+Name: KoeTomo+
+Version: 0.4.0
+Architecture: iphoneos-arm64
+Description: 声とも(koetomo)の非公式クライアント iOS版(WebView)。ログイン・タイムライン・通話・DM・コミュニティ・応援トーク等に対応。
+Maintainer: Akun
+Author: Akun
+Section: Utilities
+Depends: firmware (>= 14.0)
+Tag: compatible_min::ios14.0
+Depiction: https://github.com/haizarakun/koetomo-ios

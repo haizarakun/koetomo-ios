@@ -1,0 +1,20 @@
+{
+ "name": "KoeTomo+ Source",
+ "identifier": "com.akun.koetomo.source",
+ "apps": [
+  {
+   "bundleIdentifier": "com.akun.koetomo",
+   "versions": [
+    {
+     "version": "0.4.0",
+     "date": "2026-09-06",
+     "localizedDescription": "応援トーク（受け手一覧・ランキング・おすすめ・通話の申込/応答/評価・コイン送付）、マッチング、ランダム通話（DIVE）、コイン／ポイント履歴・ポイント交換、装飾アイテム（一覧・購入・所持）、SMS／メール認証、パスワード変更、新規登録、ユーザー設定を移植。iOS 版ではアプリ内課金（コイン購入）は非対応。",
+     "downloadURL": "https://github.com/haizarakun/koetomo-ios/releases/download/v0.4.0/KoeTomoPlus_v0.4.0.ipa",
+     "size": 991147,
+     "minOSVersion": "14.0"
+    }
+   ]
+  }
+ ],
+ "news": []
+}

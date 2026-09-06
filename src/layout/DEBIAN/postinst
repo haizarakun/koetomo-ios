@@ -1,0 +1,8 @@
+#!/var/jb/bin/sh
+# インストール後にホーム画面へアイコンを登録する(rootless / rootful 両対応)
+if [ -d /var/jb/Applications/KoeTomoPlus.app ]; then
+  uicache -p /var/jb/Applications/KoeTomoPlus.app 2>/dev/null || uicache -a 2>/dev/null || true
+else
+  uicache -p /Applications/KoeTomoPlus.app 2>/dev/null || uicache -a 2>/dev/null || true
+fi
+exit 0
