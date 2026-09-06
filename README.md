@@ -14,7 +14,7 @@ https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/repo/
 ```
 
 ### TrollStore の人（iOS 14.0〜16.6.1 / 17.0）
-[Releases](https://github.com/haizarakun/koetomo-ios/releases) から `KoeTomoPlus_vX.X.X.ipa` をダウンロードし、TrollStore で開いてインストール（永久有効・再署名不要）。
+`https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/ipa/` にある最新の `KoeTomoPlus_vX.X.X.ipa` を Safari でダウンロードし、TrollStore で開いてインストール（永久有効・再署名不要）。
 
 ### 脱獄していない人（SideStore / AltStore）
 SideStore の「ソース」に次の URL を追加すると、ストア内に KoeTomo+ が出てきます（更新も通知されます）。
