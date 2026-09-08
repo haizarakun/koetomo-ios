@@ -369,7 +369,9 @@
       if (isOwner && (autoApprove || autoReject)) for (var i = 0; i < applicants.length; i++) { var uid = arrUid(applicants[i]); if (uid) await changeRole(String(roomId), String(uid), autoApprove ? "speaker" : "listener"); }
     }
     var title = room.description || room.title || "";
-    var call = { auth_token: skToken, channel: roomToken, member: member, participants: participants, room_id: roomId || null, is_owner: isOwner, owner_user_id: Number(ownerIdStr) || 0, title: title };
+    /* 公式 TalkRoomViewModel: connection_type 1=SFU / それ以外=P2P。Android 版と同じく部屋種別を揃える */
+    var connectionType = Number(room.connection_type || room.connectionType || 0);
+    var call = { auth_token: skToken, channel: roomToken, member: member, participants: participants, room_id: roomId || null, is_owner: isOwner, owner_user_id: Number(ownerIdStr) || 0, title: title, connection_type: connectionType };
     return { ok: true, participants: participants, room_id: roomId || null, speaker_applicants: applicants, call: call };
   }
   async function joinCall(ownerParam){

@@ -262,6 +262,13 @@
   h.get_subscription_introduction_schedules = async function(){ var r = await request("GET", "/api/subscription_introduction_schedules", null, null); if (r.status !== 200 || !r.body) return jsonStatus(r); return { ok: true, schedules: dataArray(r.body, ["subscription_introduction_schedules"]) }; };
   h.get_trial_listenings = async function(){ var r = await request("GET", "/api/trial_listenings/", null, null); if (r.status !== 200 || !r.body) return { ok: true, trial_listenings: [], unavailable: true, status: r.status }; return { ok: true, trial_listenings: dataArray(r.body, ["trial_listenings"]) }; };
   h.get_voice_profiles = async function(){ var r = await request("GET", "/api/v2/voice_profiles", null, null); if (r.status !== 200 || !r.body) r = await request("GET", "/api/voice_profiles", null, null); if (r.status !== 200 || !r.body) return { ok: true, voice_profiles: [], unavailable: true, status: r.status }; return { ok: true, voice_profiles: dataArray(r.body, ["voice_profiles"]) }; };
+  /* 公式オファーウォール(Skyflag)の入口 URL。Android 版 getSkyflagOfferWallUrl と同じ */
+  h.get_skyflag_offer_wall_url = async function(){
+    var r = await request("GET", "/api/skyflag/ow_url", null, null);
+    if (r.status !== 200 || !r.body) return { ok: false, status: r.status };
+    var url = r.body.url || r.body.ow_url || r.body.offer_wall_url || "";
+    return { ok: !!url, url: url };
+  };
   h.room_join_trial = async function(a){ var q = {}; if (a[0]) q.room_id = a[0]; return okResult(await request("POST", "/api/rooms/join_trial", q, {})); };
   h.set_display_badge = async function(a){ var path = "/api/users/" + state.userId + "/display-badge"; if (!a[0]) return okResult(await request("DELETE", path, null, null)); var id = num(a[0], NaN); return okResult(await httpJson("PUT", path, { badge_id: isNaN(id) ? a[0] : id })); };
   h.bulk_delete_chats = async function(a){
