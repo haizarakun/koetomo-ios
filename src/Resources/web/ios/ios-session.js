@@ -52,18 +52,38 @@
     try { var vh = r.headers && (r.headers["x-vsns-status"]); if (vh != null && vh !== "") vsns = parseInt(vh, 10); } catch (e) {}
     return { status: (r && r.status) || 0, body: parsed, text: r && r.body, vsns: vsns, error: r && r.error, sessionExpired: (r && r.status === 401) };
   }
+  /* ---- ホストの遅延回避(Android 版 KoeSession と同じ方針) ----
+     旧サーバー(api)が 8 秒以上かかったら 120 秒間は api2 を先に試す。api2 に無い(404)パスは覚えて飛ばす。 */
+  var SLOW_HOST_MS = 8000, SLOW_HOST_PENALTY_MS = 120000;
+  var slowHostUntil = {}, api2MissingPaths = {};
+  var SERVER1_ONLY_PATHS = ["/api/account/login", "/api/chats"];
+  function isHostSlow(host){ return (slowHostUntil[host] || 0) > Date.now(); }
+  function pathKeyOf(path){ return path.split("?")[0].replace(/\/\d+/g, "/{n}"); }
+  function isServer1Only(path){ return SERVER1_ONLY_PATHS.some(function(p){ return path.indexOf(p) === 0; }); }
+  async function timedHttp(method, url, q, fields){
+    var t0 = Date.now(); var r = await http(method, url, q, fields);
+    if (Date.now() - t0 >= SLOW_HOST_MS) { var host = url.replace(/^(https?:\/\/[^\/]+).*$/, "$1"); slowHostUntil[host] = Date.now() + SLOW_HOST_PENALTY_MS; }
+    return r;
+  }
   /* Java の request(): version/auth_token をクエリに足し、api → api2 の順に試す(200 したホストを覚える) */
   async function request(method, path, query, fields){
     var q = {}; Object.keys(query || {}).forEach(function(k){ var v = query[k]; if (v !== undefined && v !== null && String(v).length) q[k] = v; });
     if (!("version" in q)) q.version = (path.indexOf("/api/cheering_talk/") === 0) ? ("android_" + APP_VERSION) : APP_VERSION;
     if (state.token && !("auth_token" in q)) q.auth_token = state.token;
     var ck = method + " " + path.replace(/\/\d+/g, "/{n}");
-    var hosts = []; [state.hostCache[ck] || BASE, BASE2, BASE].forEach(function(h){ if (hosts.indexOf(h) < 0) hosts.push(h); });
+    var pk = pathKeyOf(path);
+    var first = state.hostCache[ck] || BASE;
+    /* 振り替えは読み取り(GET)だけ。書き込みは公式と同じ server1 固定(api2 は 403「権限がありません」) */
+    if (method === "GET" && first === BASE && isHostSlow(BASE) && !isHostSlow(BASE2) && !api2MissingPaths[pk] && !isServer1Only(path)) first = BASE2;
+    var hosts = []; [first, BASE2, BASE].forEach(function(h){ if (hosts.indexOf(h) < 0) hosts.push(h); });
+    if (api2MissingPaths[pk] || isServer1Only(path)) hosts = hosts.filter(function(h){ return h !== BASE2 || h === first; });
     var last = { status: 0, body: null };
     for (var i = 0; i < hosts.length; i++) {
-      var r = await http(method, hosts[i] + path, q, fields);
+      var r = await timedHttp(method, hosts[i] + path, q, fields);
       if (r.status === 200) { state.hostCache[ck] = hosts[i]; return r; }
       last = r;
+      if (r.status === 404 && hosts[i] === BASE2) api2MissingPaths[pk] = true;
+      if (r.status === 404 && r.text && String(r.text).indexOf("対象のデータが存在しません") >= 0) return r; // 単に空。別ホストへ聞き直さない
       if (r.status >= 400 && r.status < 500 && r.status !== 404) return r;
     }
     return last;
@@ -77,6 +97,33 @@
     if (r.status >= 200 && r.status < 300) return r;
     if (r.status >= 400 && r.status < 500) return r;
     return await http(method, BASE + path, q, fields);
+  }
+  /* 直近 3 分以内の自分の投稿に同じ本文があればそれを返す(投稿の応答なし時の確認用) */
+  async function findJustPostedPost(endpoint, description){
+    try {
+      var uid = state.userId || (state.me && state.me.user_id); if (!uid) return null;
+      var r = await http("GET", BASE2 + endpoint, { target_id: String(uid), count: "5", version: "android_" + APP_VERSION, auth_token: state.token });
+      if (r.status !== 200 || !r.body) return null;
+      var arr = r.body.feed_posts || r.body.timeline_posts || r.body.posts || (r.body.data && r.body.data.posts) || [];
+      for (var i = 0; i < arr.length; i++) {
+        var p = arr[i]; var created = Date.parse(p.created_at || "");
+        if (created && Date.now() - created > 180000) continue;
+        if (String(p.description || "").trim() === String(description || "").trim()) return p;
+      }
+    } catch (e) {}
+    return null;
+  }
+  /* 公式(TimelineApiServer1.deleteFeedPost/deleteTimelinePost)と同じく server1 に DELETE。種別不明なので両パスを試す */
+  async function deleteOwnPost(id, isTalk){
+    var paths = isTalk ? ["/api/timeline_posts/", "/api/feed_posts/"] : ["/api/feed_posts/", "/api/timeline_posts/"];
+    var last = { status: 0 };
+    for (var i = 0; i < paths.length; i++) {
+      var r = await http("DELETE", BASE + paths[i] + id, { version: "android_" + APP_VERSION, auth_token: state.token });
+      log(nowStr() + "  [POSTDEL] " + paths[i] + id + " -> " + r.status);
+      if (r.status >= 200 && r.status < 300) return { ok: true, kind: paths[i].indexOf("timeline") >= 0 ? "talk" : "feed" };
+      last = r;
+    }
+    return { ok: false, status: last.status, raw: last.text ? String(last.text).slice(0, 300) : "" };
   }
   function okResult(r, statusOnly){ var ok = r.status >= 200 && r.status < 300 && (statusOnly || r.vsns === -999 || r.vsns === 0); var o = { ok: ok, status: r.status, vsns: r.vsns }; if (r.sessionExpired) o.session_expired = true; if (r.body) o.body = r.body; return o; }
   function jsonStatus(r){ return { ok: false, status: r.status, raw: r.text ? String(r.text).slice(0, 300) : "" }; }
@@ -263,10 +310,13 @@
     },
     create_timeline_post: async function(a){
       var f = { version: "android_" + APP_VERSION, play_time: "0", auth_token: state.token }; if (a[0]) f.description = a[0];
-      var r = await http("POST", BASE + "/api/feed_posts", null, f); if (r.status === 404 || r.status >= 500) r = await http("POST", BASE2 + "/api/feed_posts", null, f);
+      /* 公式(generateFeedPostRequest)と同じく server1 のみ。応答が無かった時は自分の最新投稿を確認し、
+         同じ本文が直近にあれば成功扱い(再送すると二重投稿になる) */
+      var r = await http("POST", BASE + "/api/feed_posts", null, f, { timeout: 45000 });
+      if (r.status <= 0) { var found = await findJustPostedPost("/api/feed_posts", a[0] || ""); if (found) r = { status: 200, body: found, vsns: -999 }; }
       return okResult(r);
     },
-    delete_timeline_post: async function(a){ var r = await http("DELETE", BASE + "/api/feed_posts/" + a[0], { version: "android_" + APP_VERSION, auth_token: state.token }); return okResult(r, true); },
+    delete_timeline_post: async function(a){ return await deleteOwnPost(a[0], Number(a[1]) === 1); },
     get_feed_post: async function(a){
       var r = await http("GET", BASE2 + "/api/feed_posts/" + a[0], { version: "android_" + APP_VERSION, auth_token: state.token });
       if (r.status !== 200 || !r.body) return { ok: false, status: r.status, raw: "[/api/feed_posts/" + a[0] + "@api2 HTTP " + r.status + "]" };
@@ -503,16 +553,20 @@
     // ---- DM ----
     get_chats: async function(){
       if (!state.userId) return { ok: false, error: "user_id未取得。再ログインしてください。" };
-      var r = await request("GET", "/api/chats", { uid: String(state.userId), offset: "0", count: "20" });
+      /* 公式 ChatApi は server1 固定・version=android_。応答は data 包みあり/なしの 2 形式、user_info が無いこともある */
+      var cq = { uid: String(state.userId), offset: "0", count: "20", version: "android_" + APP_VERSION }; if (state.token) cq.auth_token = state.token;
+      var r = await timedHttp("GET", BASE + "/api/chats", cq);
+      if (r.status <= 0 || r.status >= 500) r = await timedHttp("GET", BASE2 + "/api/chats", cq);
       if (r.status !== 200 || !r.body) return { ok: false, status: r.status };
-      var d = r.body.data || {}; var chats = d.chats || []; var ui = {}; (d.user_info || []).forEach(function(u){ ui[Number(u.user_id)] = u; });
+      var d = r.body.data || r.body || {}; var chats = d.chats || []; var ui = {}; (d.user_info || []).forEach(function(u){ ui[Number(u.user_id)] = u; });
       await ensureDefines();
-      var rows = chats.map(function(c){ var uid = Number(c.user_id); var u = ui[uid]; return { chat_id: c.id, target_id: uid, name: u ? (u.name || "user " + uid) : "user " + uid, icon_url: u ? iconUrl(u.profile_picture_file_path || "") : "", last_sent_at: c.last_sent_at || "", last_message: chatLastMessage(c) }; });
+      if (!Object.keys(ui).length && chats.length) { try { await resolveNames(chats.map(function(c){ return c.user_id; })); } catch (e) {} }
+      var rows = chats.map(function(c){ var uid = Number(c.user_id); var u = ui[uid] || (state.nameCache[uid] && state.nameCache[uid][0] ? { name: state.nameCache[uid][0], profile_picture_file_path: state.nameCache[uid][1] } : null); return { chat_id: c.id, target_id: uid, unread_count: Number(c.unread_count || 0), name: u ? (u.name || "user " + uid) : "user " + uid, icon_url: u ? iconUrl(u.profile_picture_file_path || "") : "", last_sent_at: c.last_sent_at || "", last_message: chatLastMessage(c) }; });
       var cache = {}; try { cache = JSON.parse(pref("chat_preview_cache") || "{}"); } catch (e) {}
       var toFetch = rows.filter(function(x){ if (x.last_message) return false; var hit = cache[x.chat_id + "@" + x.last_sent_at]; if (hit) { x.last_message = hit; return false; } return !!x.chat_id; }).slice(0, 8);
       await Promise.all(toFetch.map(async function(x){ try { var t = await chatPreviewOf(String(x.chat_id), String(x.target_id)); if (t) { x.last_message = t; cache[x.chat_id + "@" + x.last_sent_at] = t; } } catch (e) {} }));
       try { if (Object.keys(cache).length > 120) cache = {}; pref("chat_preview_cache", JSON.stringify(cache)); } catch (e) {}
-      return { ok: true, chats: rows, my_user_id: state.userId };
+      return { ok: true, rooms: rows, chats: rows, my_user_id: state.userId }; // 画面側(app.js)は rooms を読む
     },
     get_messages: async function(a){
       var r = await request("GET", "/api/messages", { chat_id: a[0], target_id: a[1], page: "1" });
