@@ -88,7 +88,7 @@
     var base = modBase(a[0]); if (!base) return { ok: false, error: "BANリストURL未設定" };
     if (!state.userId) return { ok: false, error: "ログインが必要です" };
     var target = String(a[1] || "").trim(); if (!target) return { ok: false, error: "対象不明" };
-    var body = { target_uid: target, reason_code: a[2] || "other", reporter_uid: String(state.userId) };
+    var body = { target_uid: target, reason_code: a[2] || "other", reporter_uid: String(state.userId), reporter_name: state.userName || "" };
     if (a[3]) body.detail = a[3]; if (a[4]) body.evidence = a[4]; if (a[5]) body.evidence_image = a[5]; if (a[6]) body.evidence_url = a[6]; if (a[7] && String(a[7]).trim()) body.reporter_contact = String(a[7]).trim();
     log(nowStr() + "  [MODREPORT] target=" + target + " code=" + body.reason_code);
     return await modPostJson(base + "/api/bl/report", body);
@@ -102,29 +102,46 @@
   var BOT_START = Date.now(), BOT_AUTO_SCORE = 6.0, BOT_MARK_SCORE = 3.0;
   function strHash(s){ var hsh = 0; for (var i = 0; i < s.length; i++) { hsh = (hsh * 31 + s.charCodeAt(i)) | 0; } return String(hsh); }
   function botUserOf(body){ var d = body && body.data && typeof body.data === "object" ? body.data : null; return (d && (d.user_info || d.userInfo)) || body.user_info || d || body || {}; }
+  /* 「単語+3桁数字」型の名前の ID を覚え、同型の名前が ID 近接(±100)で他に 2 人以上いれば量産アカウント群とみなす */
+  function botRememberNameHit(uid){ var a = jarr("bot_namehits"); if (a.some(function(v){ return Number(v) === uid; })) return; a.push(uid); jput("bot_namehits", a, 500); }
+  function botNameHitNeighbors(uid){ return jarr("bot_namehits").filter(function(v){ v = Number(v); return v && v !== uid && Math.abs(v - uid) <= 100; }).length; }
   function botKnownNear(uid){ return jarr("bot_cands").some(function(o){ var v = o && Number(o.u); return v && v !== uid && Math.abs(v - uid) <= 20; }); }
   function botKnownFeature(uid, feat){ if (!feat) return false; var fh = strHash(feat); return jarr("bot_cands").some(function(o){ return o && Number(o.u) !== uid && String(o.f || "") === fh; }); }
   function botRemember(uid, feat){ var a = jarr("bot_cands"), fh = feat ? strHash(feat) : "", found = false; a.forEach(function(o){ if (o && Number(o.u) === uid) { o.f = fh; o.t = Date.now(); found = true; } }); if (!found) a.push({ u: uid, f: fh, t: Date.now() }); jput("bot_cands", a, 400); }
   async function botRecentPosts(uid, windowMs){
     try { var r = await K.handlers.get_user_posts([String(uid), ""]); var ps = (r && r.posts) || []; var now = Date.now(); return ps.filter(function(p){ var t = Date.parse(p.created_at || ""); return t && now - t <= windowMs; }).length; } catch (e) { return -1; }
   }
+  var BOT_BIO_RE = /(https?:\/\/|line|ライン|ｌｉｎｅ|カカオ|kakao|tiktok|ティックトック|副業|副収入|稼げ|稼ぎ|投資|fx|仮想通貨|ビットコイン|バイナリ|パパ活|裏垢|大人の|割り切り|ホ別|ｄｍ|dm下さい|dmください|@[a-z0-9_]{3,}|id[:：]|検索して)/;
   async function botEval(u, uid, allowPostFetch){
     var rs = [], ev = {};
     var icon = u.profile_picture_file_path || u.icon_url || ""; var fn = icon.slice(icon.lastIndexOf("/") + 1).split("?")[0];
-    var a1 = /^[A-Za-z0-9]{16}\.(png|jpe?g|webp)$/.test(fn);
+    var genIcon = /^[A-Za-z0-9]{16}\.(png|jpe?g|webp)$/.test(fn), noIcon = icon.trim().length === 0, a1 = genIcon || noIcon;
     var fol = u.follower_count != null ? Number(u.follower_count) : -1, fee = u.followee_count != null ? Number(u.followee_count) : -1, fr = u.friend_count != null ? Number(u.friend_count) : -1, liked = u.liked_count != null ? Number(u.liked_count) : -1;
     var a2 = fol === 0 && fee === 0 && fr === 0 && liked === 0;
+    var a2near = !a2 && fol >= 0 && fee >= 0 && fr >= 0 && liked >= 0 && fol <= 2 && fee <= 2 && fr === 0 && liked <= 2;
     var cm = u.comment == null ? "" : String(u.comment); var a3 = cm.trim().length === 0;
+    var a3bio = !a3 && BOT_BIO_RE.test(cm.toLowerCase().replace(/\s+/g, ""));
     var av = u.age_verification_status != null ? Number(u.age_verification_status) : -1; var a4 = av === 0;
-    var hard = a1 && a2 && a3 && a4;
-    Object.assign(ev, { icon_file: fn, follower_count: fol, followee_count: fee, friend_count: fr, liked_count: liked, comment_empty: a3, age_verification_status: av, A1_icon16: a1, A2_all_zero: a2, A3_no_bio: a3, A4_no_age_verify: a4 });
-    var sc = 0, nm = String(u.name || ""); ev.name = nm;
-    if (/^[^\s]{1,20}[0-9]{3}$/.test(nm) && !/^[0-9]+$/.test(nm)) { sc += 3; rs.push("名前が単語+3桁数字"); }
-    if (hard && botKnownNear(uid)) { sc += 3; rs.push("既知botとID連番"); }
-    var feat = u.feature == null ? "" : String(u.feature); ev.feature = feat.slice(0, 120);
-    if (hard && botKnownFeature(uid, feat)) { sc += 2; rs.push("既知botと同一feature"); }
+    var nm = String(u.name || ""); var nameHit = /^[^\s]{1,20}[0-9]{3}$/.test(nm) && !/^[0-9]+$/.test(nm);
+    var feat = u.feature == null ? "" : String(u.feature); var near = botKnownNear(uid), knownFeat = botKnownFeature(uid, feat);
+    /* 量産型の 4 特徴のうち 3 つ + 補強材料(名前の型・既知botとの連番/同一端末・勧誘文)でも量産型とみなす(Android 版と同じ) */
+    var core = (a1 ? 1 : 0) + ((a2 || a2near) ? 1 : 0) + ((a3 || a3bio) ? 1 : 0) + (a4 ? 1 : 0);
+    if (nameHit) botRememberNameHit(uid);
+    var nameCluster = nameHit ? botNameHitNeighbors(uid) : 0;
+    var hard = core >= 4 || (core >= 3 && (nameHit || near || knownFeat || a3bio)) || (core >= 2 && nameHit) || (nameHit && nameCluster >= 2);
+    if (hard) { rs.push(genIcon ? "量産型アイコン名" : (noIcon ? "アイコン未設定" : "量産型の特徴が3つ以上")); if (a2 && a3 && a4) rs.push("交流0・自己紹介なし・年齢確認なし"); else if (a2near) rs.push("交流ほぼ0"); if (a3bio) rs.push("自己紹介に勧誘・誘導の語句"); }
+    Object.assign(ev, { icon_file: fn, follower_count: fol, followee_count: fee, friend_count: fr, liked_count: liked, comment_empty: a3, comment_suspicious: a3bio, age_verification_status: av, core_hits: core, A1_icon16: a1, A2_all_zero: a2, A2_near_zero: a2near, A3_no_bio: a3, A4_no_age_verify: a4, icon_kind: genIcon ? "generated" : (noIcon ? "none" : "normal") });
+    var sc = 0; ev.name = nm;
+    if (nameHit) { sc += 3; rs.push("名前が単語+3桁数字"); }
+    if (hard && noIcon) sc += 1;
+    if (hard && a3bio) sc += 2;
+    if (hard && near) { sc += 3; rs.push("既知botとID連番"); }
+    ev.feature = feat.slice(0, 120);
+    if (hard && knownFeat) { sc += 3; rs.push("既知botと同一feature"); }
+    if (hard && nameCluster >= 2) { sc += 3; rs.push("同型の名前(単語+3桁)がID近接で複数"); }
+    ev.name_cluster = nameCluster;
     var rm = truthy(u.random_match_enabled) || (u.settings && truthy(u.settings.random_match_enabled)); ev.random_match_enabled = !!rm;
-    if (rm && a2) { sc += 1.5; rs.push("ランダムマッチON+交流0"); }
+    if (rm && (a2 || a2near)) { sc += 1.5; rs.push("ランダムマッチON+交流0"); }
     var ls = String(u.login_status_with_unit || ""); ev.login_status = ls;
     if (/1時間以内|分以内|オンライン/.test(ls)) { sc += 0.5; rs.push("直近ログイン"); }
     if (hard && allowPostFetch && sc >= BOT_MARK_SCORE && sc < BOT_AUTO_SCORE) { var recent = await botRecentPosts(uid, 3600000); ev.posts_last_hour = recent; if (recent >= 5) { sc += 2; rs.push("直近1時間に" + recent + "件投稿"); } }
@@ -157,11 +174,41 @@
     var u = botUserOf(r.body), ev = await botEval(u, uid, true);
     if (ev.level !== "high") return { ok: true, applied: false, score: ev.score, level: ev.level, skip: "条件未達" };
     var base = modBase(a[0]); if (!base) return { ok: false, error: "BANリストURL未設定" };
-    var body = { target_uid: String(uid), reason_code: "bot", detail: "[KoeTomo+ 業者自動判定(自動申請) score=" + ev.score + "] " + ev.reasons.join("・"), evidence: JSON.stringify(ev.ev), reporter_uid: String(state.userId), auto: true };
-    log(nowStr() + "  [BOTAUTO] apply uid=" + uid + " score=" + ev.score);
-    var res = await modPostJson(base + "/api/bl/report", body); botAutoMark(uid);
-    res.applied = !!res.ok; res.score = ev.score; res.reasons = ev.reasons; res.name = u.name || ""; return res;
+    var body = botReportBody(uid, ev);
+    log(nowStr() + "  [BOTAUTO] apply uid=" + uid + " score=" + ev.score + " confidence=" + body.confidence);
+    var res = await modPostJson(base + "/api/bl/report", body);
+    var st = Number(res.status) || 0;
+    log(nowStr() + "  [BOTAUTO] server -> " + st + " lane=" + (res.lane || "-") + " verified=" + (res.verified === undefined ? "-" : res.verified) + (res.verify_reason ? " " + String(res.verify_reason).slice(0, 80) : ""));
+    if (res.ok || (st >= 400 && st < 500 && st !== 429)) botAutoMark(uid); // 受理 / 内容で拒否 → もう送らない
+    else if (body.confidence === "confirmed") botQueueRetry(body); // 確定 bot は 429/5xx でも捨てず再送
+    botFlushRetry(base);
+    res.applied = !!res.ok; res.score = ev.score; res.reasons = ev.reasons; res.name = u.name || ""; res.confidence = body.confidence; res.queued = !res.ok && body.confidence === "confirmed"; return res;
   };
+  /* 申請本文(Android 版 botReportBody と同じ)。confidence "confirmed" = 量産群としての確証あり。
+     サーバーはこの値を信用せず evidence.verify を元に自前で再取得・検証する前提。 */
+  function botReportBody(uid, ev){
+    var e = ev.ev || {}; var cluster = Number(e.name_cluster || 0) >= 2;
+    var nearKnown = ev.reasons.indexOf("既知botとID連番") >= 0, sameFeat = ev.reasons.indexOf("既知botと同一feature") >= 0;
+    var confidence = (cluster || nearKnown || sameFeat) && ev.score >= BOT_AUTO_SCORE ? "confirmed" : "high";
+    var neighbors = [];
+    jarr("bot_namehits").forEach(function(v){ v = Number(v); if (v && v !== uid && Math.abs(v - uid) <= 100) neighbors.push(v); });
+    jarr("bot_cands").forEach(function(o){ var v = o && Number(o.u); if (v && v !== uid && Math.abs(v - uid) <= 20) neighbors.push(v); });
+    e.verify = { target_uid: uid, neighbor_uids: neighbors, checked_at_ms: Date.now(), rules: "core>=4 | core>=3+aux | core>=2+namepattern | namepattern+cluster>=2" };
+    return { target_uid: String(uid), reason_code: "bot", detail: "[KoeTomo+ 業者自動判定(自動申請) score=" + ev.score + (confidence === "confirmed" ? " 確定" : "") + "] " + ev.reasons.join("・"), evidence: JSON.stringify(e), reporter_uid: String(state.userId), auto: true, confidence: confidence, client: "koetomoplus-ios/" + iosAppVersion(), reporter_name: state.userName || "", target_name: String(e.name || "") };
+  }
+  function iosAppVersion(){ try { var r = JSON.parse(window.AndroidApi && window.AndroidApi.appVersion ? window.AndroidApi.appVersion() : "{}"); return (r && r.name) || "?"; } catch (e) { return "?"; } }
+  var botRetryLastAt = 0;
+  function botQueueRetry(body){ var q = jarr("bot_retry"); if (q.some(function(o){ return o && o.target_uid === body.target_uid; })) return; body.queued_at = Date.now(); q.push(body); jput("bot_retry", q, 50); log(nowStr() + "  [BOTAUTO] 再送キューへ uid=" + body.target_uid + " (" + q.length + "件)"); }
+  async function botFlushRetry(base){
+    try {
+      var q = jarr("bot_retry"); if (!q.length) return; var now = Date.now(); if (now - botRetryLastAt < 60000) return; botRetryLastAt = now;
+      var body = q.shift(); body.retry = true;
+      var res = await modPostJson(base + "/api/bl/report", body); var st = Number(res.status) || 0;
+      if (res.ok || (st >= 400 && st < 500 && st !== 429)) { botAutoMark(Number(body.target_uid)); log(nowStr() + "  [BOTAUTO] 再送 uid=" + body.target_uid + " -> " + st); }
+      else if (now - Number(body.queued_at || now) < 7 * 86400000) q.push(body);
+      jput("bot_retry", q, 50);
+    } catch (e) {}
+  }
   h.moderation_report_spam = async function(a){
     var base = modBase(a[0]); if (!base) return { ok: false, error: "BANリストURL未設定" };
     if (!state.userId) return { ok: false, error: "ログインが必要です" };
@@ -169,7 +216,7 @@
     var r = await fetchUserRaw(t); if (r.status !== 200 || !r.body) return { ok: false, error: "user_fetch_failed", status: r.status, message: "相手の情報を取得できませんでした" };
     var u = botUserOf(r.body), ev = await botEval(u, t, true);
     if (!ev.level) return { ok: false, error: "not_spam_like", message: ev.hard ? ("業者判定の条件を満たしていません(スコア " + ev.score + ")。通常の通報をご利用ください") : "業者判定の必須条件(量産型アイコン名・フォロー等すべて0・自己紹介なし・年齢確認なし)を満たしていません。通常の通報をご利用ください" };
-    var body = { target_uid: String(t), reason_code: "bot", detail: "[KoeTomo+ 業者自動判定 score=" + ev.score + "] " + ev.reasons.join("・"), evidence: JSON.stringify(ev.ev), reporter_uid: String(state.userId) };
+    var body = { target_uid: String(t), reason_code: "bot", detail: "[KoeTomo+ 業者自動判定 score=" + ev.score + "] " + ev.reasons.join("・"), evidence: JSON.stringify(ev.ev), reporter_uid: String(state.userId), reporter_name: state.userName || "", target_name: String(u.name || "") };
     log(nowStr() + "  [MODREPORT] spam target=" + t + " score=" + ev.score);
     var res = await modPostJson(base + "/api/bl/report", body); res.reasons = ev.reasons; res.score = ev.score; return res;
   };
