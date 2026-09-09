@@ -20,6 +20,8 @@
     var tl = (u.timeline_image_enabled === true || u.timeline_image_enabled === 1 || u.timeline_image_enabled === "1" || u.timeline_image_enabled === "true") ? String(u.timeline_image_file_path || "") : "";
     if (tl === "null") tl = "";
     adorn[uid] = (!item && !badge && !tl) ? null : [item, badge, tl]; /* null = 確認済みで装飾なし(取り直さない) */
+    /* 投稿するとき「いま着けている枠の番号」も一緒に送る(公式と同じ)。ext3 から読めるように外へ。 */
+    if (uid === Number(state.userId)) window.__koeMyDeco = item;
   }
   /* 公式 ProfileAssetPaths.badgePath: バッジ画像は png サーバーの badge/ 配下 */
   function badgeUrl(raw){ if (!raw) return ""; if (/^https?:/.test(raw)) return raw; return iconUrl(raw.indexOf("badge/") === 0 ? raw : "badge/" + raw); }

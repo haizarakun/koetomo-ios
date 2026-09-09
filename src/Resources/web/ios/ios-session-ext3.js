@@ -10,6 +10,27 @@
   function uuidHex(){ var h = "0123456789abcdef", o = ""; for (var i = 0; i < 32; i++) o += h[Math.floor(Math.random() * 16)]; return o; }
   function stripDataUrl(s){ s = String(s || ""); var c = s.indexOf(","); return (s.indexOf("data:") === 0 && c >= 0) ? s.slice(c + 1) : s; }
   function b64IsJpeg(b64){ try { var head = atob(b64.slice(0, 8)); return head.charCodeAt(0) === 0xFF && head.charCodeAt(1) === 0xD8 && head.charCodeAt(2) === 0xFF; } catch (e) { return false; } }
+  // 画像は必ず PNG で上げる。
+  // S3 へ置いたあとサーバー側が同じ名前の .webp を作り、公式アプリも Web も
+  // <名前>.webp を読みに行く。.jpg で置くと .webp が作られず、本人以外には出ない(403)。
+  function toPngB64(b64){
+    return new Promise(function (resolve) {
+      if (!b64IsJpeg(b64)) { resolve(b64); return; }
+      try {
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var cv = document.createElement("canvas");
+            cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+            cv.getContext("2d").drawImage(img, 0, 0);
+            resolve(cv.toDataURL("image/png").split(",")[1] || b64);
+          } catch (e) { resolve(b64); }
+        };
+        img.onerror = function () { resolve(b64); };
+        img.src = "data:image/jpeg;base64," + b64;
+      } catch (e) { resolve(b64); }
+    });
+  }
   async function imageS3Config(){
     await ensureDefines();
     var up = null; try { up = state.clientDefines.client_system_params.server_name.image_upload; } catch (e) {}
@@ -44,7 +65,11 @@
     var f = { version: "android_" + APP_VERSION }; var isFeed = endpoint.indexOf("feed_posts") >= 0;
     if (!isFeed) { f.purpose = purpose || "0"; f.topic = "0"; } else { f.play_time = playTime || "0"; }
     if (description) f.description = description; if (imagePath) f.image_file_path = imagePath; if (voicePath) f.voice_file_path = voicePath;
-    if (imagePath && md5) f.md5 = md5; if (state.token) f.auth_token = state.token;
+    if (imagePath && md5) f.md5 = md5;
+    /* 公式は投稿にも、いま着けているプロフィール枠の番号を付ける。
+       付けないと装飾を持っている人の投稿が他のクライアントで素の見た目になる。 */
+    if (window.__koeMyDeco) f.decoration_item_id = window.__koeMyDeco;
+    if (state.token) f.auth_token = state.token;
     var sig = endpoint + " " + (description || "") + " " + (imagePath || "") + " " + (voicePath || "");
     if (sig === lastPost.sig && Date.now() - lastPost.t < 15000) { log(nowStr() + "  [POST] 同一内容の連続投稿を抑止 " + endpoint); return { status: 200, body: null, vsns: -999 }; }
     lastPost = { sig: sig, t: Date.now() };
@@ -54,7 +79,7 @@
   async function createPostWithImage(endpoint, text, purpose, dataUrl){
     var b64 = stripDataUrl(dataUrl); if (!b64) return { ok: false, message: "画像がありません" };
     try {
-      var isJpeg = b64IsJpeg(b64); var up = await s3Upload(b64, isJpeg ? "jpg" : "png", isJpeg ? "image/jpeg" : "image/png");
+      var up = await s3Upload(await toPngB64(b64), "png", "image/png");
       log(nowStr() + "  [IMGPOST] S3 OK key=" + up.key);
       return okResult(await postToSeries(endpoint, text, purpose, up.bare, null, up.md5, "0"));
     } catch (e) { return { ok: false, message: "画像アップロード失敗: " + (e && e.message) }; }
@@ -106,7 +131,7 @@
   // ---- DM 添付 ----
   handlers.send_image_message = async function(a){
     var b64 = stripDataUrl(a[2]); if (!b64) return { ok: false, message: "画像がありません" };
-    try { var isJpeg = b64IsJpeg(b64); var up = await s3Upload(b64, isJpeg ? "jpg" : "png", isJpeg ? "image/jpeg" : "image/png");
+    try { var up = await s3Upload(await toPngB64(b64), "png", "image/png");
       var r = await http("POST", BASE + "/api/chat/messages", null, { target_id: a[1], chat_id: a[0], uid: String(state.userId), message_type: "2", binary_file_path: up.bare, md5: up.md5, version: "android_" + APP_VERSION, auth_token: state.token }); return okResult(r, true); }
     catch (e) { return { ok: false, message: String(e && e.message) }; }
   };
@@ -166,7 +191,7 @@
   handlers.update_profile = async function(a){ var r = await request("POST", "/api/account/profile_update", null, { name: a[0] || "", email: "", birthday: a[2] || "", comment: a[1] || "", referer_name: "", birthday_input_error: "" }); if (r.status >= 200 && r.status < 300 && a[2]) pref("birthday", a[2]); return okResult(r); };
   handlers.upload_account_image = async function(a){
     var b64 = stripDataUrl(a[0]); if (!b64) return { ok: false, message: "画像がありません" };
-    try { var isJpeg = b64IsJpeg(b64); var up = await s3Upload(b64, isJpeg ? "jpg" : "png", isJpeg ? "image/jpeg" : "image/png"); var r = await request("POST", "/api/account/profile_picture", null, { profile_picture_file_path: up.bare, md5: up.md5 }); return okResult(r, true); }
+    try { var up = await s3Upload(await toPngB64(b64), "png", "image/png"); var r = await request("POST", "/api/account/profile_picture", null, { profile_picture_file_path: up.bare, md5: up.md5 }); return okResult(r, true); }
     catch (e) { return { ok: false, message: String(e && e.message) }; }
   };
   // ---- DM の画像/音声(非公開バケット)に署名URLを付ける: get_messages を包む ----

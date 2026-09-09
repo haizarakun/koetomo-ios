@@ -68,7 +68,9 @@
   /* Java の request(): version/auth_token をクエリに足し、api → api2 の順に試す(200 したホストを覚える) */
   async function request(method, path, query, fields){
     var q = {}; Object.keys(query || {}).forEach(function(k){ var v = query[k]; if (v !== undefined && v !== null && String(v).length) q[k] = v; });
-    if (!("version" in q)) q.version = (path.indexOf("/api/cheering_talk/") === 0) ? ("android_" + APP_VERSION) : APP_VERSION;
+    // 公式はパラメータの version を必ず "android_3.9.101" の形で送る
+    // (素の "3.9.101" は設定ファイルの URL にしか使っていない)。こちらも全窓口で揃える。
+    if (!("version" in q)) q.version = "android_" + APP_VERSION;
     if (state.token && !("auth_token" in q)) q.auth_token = state.token;
     var ck = method + " " + path.replace(/\/\d+/g, "/{n}");
     var pk = pathKeyOf(path);
@@ -329,9 +331,9 @@
       return { ok: r.status === 200, count: Number(c) || 0 };
     },
     get_notifications: async function(a){ return await getNotifications(a[0] || "normal", a[1] || "1"); },
-    system_arrival: async function(){ var r = await http("POST", BASE + "/api/system/arrival", { auth_token: state.token, version: APP_VERSION }, {}); return { ok: r.status === 200, status: r.status }; },
+    system_arrival: async function(){ var r = await http("POST", BASE + "/api/system/arrival", { auth_token: state.token, version: "android_" + APP_VERSION }, {}); return { ok: r.status === 200, status: r.status }; },
     get_friends_list: async function(){
-      var r = await http("POST", BASE + "/api/v2/dive/relations", null, { auth_token: state.token, version: APP_VERSION, without_chat_id: "true", include_blocked_user: "false" });
+      var r = await http("POST", BASE + "/api/v2/dive/relations", null, { auth_token: state.token, version: "android_" + APP_VERSION, without_chat_id: "true", include_blocked_user: "false" });
       var d = (r.body && (r.body.data || r.body)) || {}; var friends = d.friends || []; await ensureDefines();
       return { ok: r.status === 200, friends: friends.map(function(u){ var x = u.user_info || u.user || u; return { user_id: x.user_id || x.id, name: x.name || "", icon_url: iconUrl(x.profile_picture_file_path || ""), is_friend: true, mutual: true }; }), mutual: [] };
     },
@@ -490,7 +492,7 @@
     },
     join_call: async function(a){ return await joinCall(a[0] == null ? "null" : String(a[0])); },
     join_room_by_id: async function(a){
-      var q = { version: APP_VERSION, auth_token: state.token };
+      var q = { version: "android_" + APP_VERSION, auth_token: state.token };
       var r = await http("GET", BASE2 + "/api/rooms/" + a[0], q); if (r.status !== 200) r = await http("GET", BASE + "/api/rooms/" + a[0], q);
       if (r.status !== 200 || !r.body) return { ok: false, error: "room_not_found", status: r.status, message: "この枠は見つかりませんでした(終了した可能性があります)。" };
       var d = r.body.data; var room = null;
@@ -510,7 +512,7 @@
     refresh_room_state: async function(a){
       var ownerStr = (!a[0] || a[0] === "null") ? String(state.userId) : String(a[0]); var roomId = a[1]; var room = null;
       if (roomId && roomId !== "null" && roomId !== "0") {
-        var r1 = await http("GET", BASE2 + "/api/rooms/" + roomId, { version: APP_VERSION, auth_token: state.token });
+        var r1 = await http("GET", BASE2 + "/api/rooms/" + roomId, { version: "android_" + APP_VERSION, auth_token: state.token });
         if (r1.status === 200 && r1.body) { var d = r1.body.data; if (d && typeof d === "object" && !Array.isArray(d)) room = d.room || d; else if (Array.isArray(d) && d.length) room = d[0]; else if (r1.body.room_id || r1.body.owner_user_id || r1.body.speakers) room = r1.body; else if (r1.body.room) room = r1.body.room; if (!room) { var rr = roomsFromBody(r1.body); if (rr && rr.length) room = rr[0]; } }
         else if (r1.status === 404) return { ok: true, room_id: null, owner_user_id: 0, speaker_applicants: [], speakers: [], listeners: [], speaker_count: 0, listener_count: 0 };
       }
@@ -550,7 +552,10 @@
     },
     /* 自分のミュート状態を公式アプリと同じ場所へ(公式 TalkRoomViewModel.setMute 相当)。
        api/rooms/{id}/mute_status/{自分} = 1/0 … 公式クライアントのミュートアイコン
-       ミュート時のみ room_data に Volume コマンド(2) {user_id, volume:0} … 公式のマイクレベル表示を消す
+       room_data に Volume コマンド(2) {user_id, volume:0|1} … 公式のマイクレベル表示を消す/戻す
+       ★room_data は「JSON をそのまま」ではなく「JSON を文字列にしたもの」を置く。
+         実際の枠の値は "{\n  \"args\" : { … }\n}" という文字列 1 本で、
+         オブジェクトのまま置くと公式アプリ側で読めず合図が届かない。
        音声そのものの停止は SkyWay 側(publication.disable)。ここは表示用の合図だけ。 */
     room_mute_status: async function(a){
       if (!a[0]) return { ok: false, message: "room_id不明" };
@@ -558,23 +563,24 @@
       var muted = String(a[1]) === "1";
       var base = "https://koetomo-bb8bb.firebaseio.com/api/rooms/" + a[0];
       var r = await native("__http", [{ method: "PUT", url: base + "/mute_status/" + state.userId + ".json", headers: { "Content-Type": "application/json" }, body: muted ? "1" : "0", timeout: 12000 }]);
-      if (muted) {
-        try {
-          var body = JSON.stringify({ command: 2, args: { user_id: Number(state.userId), volume: 0 } });
-          await native("__http", [{ method: "PUT", url: base + "/room_data.json", headers: { "Content-Type": "application/json" }, body: body, timeout: 12000 }]);
-        } catch (e) {}
-      }
+      try {
+        var body = JSON.stringify(JSON.stringify({ command: 2, args: { user_id: Number(state.userId), volume: muted ? 0 : 1 } }));
+        await native("__http", [{ method: "PUT", url: base + "/room_data.json", headers: { "Content-Type": "application/json" }, body: body, timeout: 12000 }]);
+      } catch (e) {}
       return { ok: r.status >= 200 && r.status < 300, status: r.status };
     },
     room_invite: async function(a){ if (!a[0] || !a[1]) return { ok: false, message: "room_id/target_id不明" }; return okResult(await request("POST", "/api/rooms/" + a[0] + "/invite", { target_ids: a[1] }, {})); },
     room_data_send: async function(a){
       if (!a[0]) return { ok: false, message: "room_id不明" };
-      var body = JSON.stringify({ command: Number(a[1]), args: { requestee_id: Number(a[2]) } });
+      // 二重の JSON.stringify は間違いではない(room_data には文字列を置くため)
+      var body = JSON.stringify(JSON.stringify({ command: Number(a[1]), args: { requestee_id: Number(a[2]) } }));
       var r = await native("__http", [{ method: "PUT", url: "https://koetomo-bb8bb.firebaseio.com/api/rooms/" + a[0] + "/room_data.json", headers: { "Content-Type": "application/json" }, body: body, timeout: 12000 }]);
       return { ok: r.status >= 200 && r.status < 300, status: r.status };
     },
     skyway_connect_log: async function(a){ if (!a[0]) return { ok: false, message: "connection_id不明" }; var r = await request("POST", "/api/skyway/connections", null, { ConnectionId: a[0], CallerId: a[1] || "0", CalleeId: a[2] || "0", TargetId: a[3] || "0", token: a[4] || "" }); return okResult(r, true); },
-    skyway_disconnect_log: async function(a){ if (!a[0]) return { ok: false }; var r = await request("DELETE", "/api/skyway/connections/" + a[0], null, null); return okResult(r, true); },
+    /* 公式 generateSkywayDisonnectionRequest: POST api/skyway/disconnections (FORM ConnectionId, CallDuration)。
+       DELETE /api/skyway/connections/{id} という窓口は公式に無く、送っても記録されない。 */
+    skyway_disconnect_log: async function(a){ if (!a[0]) return { ok: false }; var r = await request("POST", "/api/skyway/disconnections", null, { ConnectionId: a[0], CallDuration: a[1] || "0" }); return okResult(r, true); },
     // ---- DM ----
     get_chats: async function(){
       if (!state.userId) return { ok: false, error: "user_id未取得。再ログインしてください。" };
@@ -639,9 +645,9 @@
       await ensureDefines(); await resolveNames(posts.map(function(p){ return p.user_id; }));
       return { ok: true, posts: posts.map(function(p){ var uid = Number(p.user_id); return { id: p.id, user_id: uid, name: nameOf(uid), icon_url: iconOf(uid), text: p.description || "", liked: !!liked[p.id], like_count: Number(p.liked_count || p.likedCount || 0), image_url: iconUrl(p.image_file_path || ""), created_at: p.created_at || "" }; }) };
     },
-    get_community_post_comments: async function(a){ var r = await http("GET", BASE + "/api/communities/" + a[0] + "/posts/" + a[1] + "/comments", { page: a[2] || "1", version: APP_VERSION, auth_token: state.token }); return okList(r, "comments", ["comments", "post_comments"]); },
+    get_community_post_comments: async function(a){ var r = await http("GET", BASE + "/api/communities/" + a[0] + "/posts/" + a[1] + "/comments", { page: a[2] || "1", version: "android_" + APP_VERSION, auth_token: state.token }); return okList(r, "comments", ["comments", "post_comments"]); },
     create_community_post: async function(a){ return okResult(await request("POST", "/api/communities/" + a[0] + "/posts", null, { description: a[1], image_file_path: "", voice_file_path: "", md5: "" })); },
-    comment_community_post: async function(a){ var r = await http("POST", BASE + "/api/communities/" + a[0] + "/posts/" + a[1] + "/comments", { version: APP_VERSION, auth_token: state.token }, { description: a[2] || "", image_file_path: "", voice_file_path: "", md5: "" }); return okResult(r); },
+    comment_community_post: async function(a){ var r = await http("POST", BASE + "/api/communities/" + a[0] + "/posts/" + a[1] + "/comments", { version: "android_" + APP_VERSION, auth_token: state.token }, { description: a[2] || "", image_file_path: "", voice_file_path: "", md5: "" }); return okResult(r); },
     toggle_community_like: async function(a){ var liked = !!a[2]; return okResult(await request(liked ? "DELETE" : "POST", "/api/communities/" + a[0] + "/posts/" + a[1] + "/liked", null, liked ? null : {})); },
     get_community_members: async function(a){
       var q = { count: "20" }; if (a[1] && a[1] !== "null") q.max_joined_at = a[1];

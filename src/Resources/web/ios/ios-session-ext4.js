@@ -125,7 +125,20 @@
   }
   function diveTokenOf(b){ if (!b) return ""; var t = b.token || ""; if (!t && b.data && typeof b.data === "object") t = b.data.token || b.data.connection_id || ""; if (!t) t = b.connection_id || ""; return String(t || ""); }
   function diveOut(r){ if (!isOk(r)) return errOf(r); return { ok: true, token: diveTokenOf(r.body) }; }
-  var SETTING_KEYS = ["random_match_enabled", "is_online_status_public", "is_read_receipt_public", "is_my_age_public", "is_follow_list_public", "is_follower_list_public", "is_friend_list_public", "timeline_image_enabled"];
+  /* 真偽値で持つ設定。末尾 3 つは DM の受付範囲を「カスタム」にしたときの相手の種類
+     (公式の呼び方: friends=声とものユーザー / followings=あなたがフォローしているユーザー /
+      followers=あなたをフォローしているユーザー) */
+  var SETTING_KEYS = ["random_match_enabled", "is_online_status_public", "is_read_receipt_public", "is_my_age_public", "is_follow_list_public", "is_follower_list_public", "is_friend_list_public", "timeline_image_enabled",
+    "chat_permission_friends", "chat_permission_followings", "chat_permission_followers"];
+  /* 数値で持つ設定。chat_permission_level: 0=全員 1=フォローまたは友達 2=友達のみ 3=受け付けない 4=カスタム */
+  var SETTING_INT_KEYS = ["chat_permission_level"];
+  function isIntSetting(k){ return SETTING_INT_KEYS.indexOf(k) >= 0; }
+  function toInt(v, fallback){
+    if (v === null || v === undefined || v === "") return fallback;
+    if (typeof v === "boolean") return v ? 1 : 0;
+    var n = parseInt(v, 10);
+    return isNaN(n) ? fallback : n;
+  }
   function truthy(v){ if (v == null) return false; if (typeof v === "boolean") return v; if (typeof v === "number") return v !== 0; var t = String(v).trim().toLowerCase(); return t === "1" || t === "true" || t === "yes"; }
   function localSettings(){ try { return JSON.parse(pref("usersettings") || "{}"); } catch (e) { return {}; } }
   /* api → api2 の順で PUT(旧 API 群: version/auth_token をフォームに載せる) */
@@ -338,9 +351,16 @@
       var o = (r.body.data && typeof r.body.data === "object") ? r.body.data : r.body;
       var u = (o.user && typeof o.user === "object") ? o.user : o;
       var s = u.user_setting || u.settings || u;
-      var out = {}; SETTING_KEYS.forEach(function(k){ if (s[k] !== undefined) out[k] = truthy(s[k]); });
+      var out = {};
+      SETTING_KEYS.forEach(function(k){ if (s[k] !== undefined) out[k] = truthy(s[k]); });
+      SETTING_INT_KEYS.forEach(function(k){ if (s[k] !== undefined) out[k] = toInt(s[k], 0); });
       log(nowStr() + "  [SETTINGS] v3 found=" + Object.keys(out).length);
-      if (!Object.keys(out).length) { var loc = localSettings(); SETTING_KEYS.forEach(function(k){ if (loc[k] !== undefined) out[k] = !!loc[k]; }); out._local = true; }
+      if (!Object.keys(out).length) {
+        var loc = localSettings();
+        SETTING_KEYS.forEach(function(k){ if (loc[k] !== undefined) out[k] = !!loc[k]; });
+        SETTING_INT_KEYS.forEach(function(k){ if (loc[k] !== undefined) out[k] = toInt(loc[k], 0); });
+        out._local = true;
+      }
       return { ok: true, settings: out };
     },
     set_user_settings: async function(a){
@@ -348,7 +368,11 @@
       var f = {}; Object.keys(obj).forEach(function(k){ var v = obj[k]; f[k] = typeof v === "boolean" ? (v ? "1" : "0") : String(v); });
       var r = await legacyPut("/api/account/user_settings", f);
       log(nowStr() + "  [SETTINGS] update -> " + r.status + " vsns=" + r.vsns);
-      if (r.status >= 200 && r.status < 300) { var loc = localSettings(); Object.keys(obj).forEach(function(k){ loc[k] = truthy(obj[k]); }); pref("usersettings", JSON.stringify(loc)); }
+      if (r.status >= 200 && r.status < 300) {
+        var loc = localSettings();
+        Object.keys(obj).forEach(function(k){ loc[k] = isIntSetting(k) ? toInt(obj[k], 0) : truthy(obj[k]); });
+        pref("usersettings", JSON.stringify(loc));
+      }
       return okStatus(r);
     }
   });

@@ -108,8 +108,32 @@
   function botKnownNear(uid){ return jarr("bot_cands").some(function(o){ var v = o && Number(o.u); return v && v !== uid && Math.abs(v - uid) <= 20; }); }
   function botKnownFeature(uid, feat){ if (!feat) return false; var fh = strHash(feat); return jarr("bot_cands").some(function(o){ return o && Number(o.u) !== uid && String(o.f || "") === fh; }); }
   function botRemember(uid, feat){ var a = jarr("bot_cands"), fh = feat ? strHash(feat) : "", found = false; a.forEach(function(o){ if (o && Number(o.u) === uid) { o.f = fh; o.t = Date.now(); found = true; } }); if (!found) a.push({ u: uid, f: fh, t: Date.now() }); jput("bot_cands", a, 400); }
-  async function botRecentPosts(uid, windowMs){
-    try { var r = await K.handlers.get_user_posts([String(uid), ""]); var ps = (r && r.posts) || []; var now = Date.now(); return ps.filter(function(p){ var t = Date.parse(p.created_at || ""); return t && now - t <= windowMs; }).length; } catch (e) { return -1; }
+  /* 本文に混ぜられた「目に見えない文字」。ゼロ幅スペース(U+200B)や方向制御(U+202A〜202E)は
+     画面に何も出ないので、一文字ずつの間に挟むと見た目はそのままで NG ワードの照合だけをすり抜けられる。
+     絵文字の異体字セレクタ(U+FE0E / U+FE0F)は正当な使い方なので数えない。 */
+  var BOT_INVISIBLE_RE = /[\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g;
+  function stripInvisible(s){ return String(s == null ? "" : s).replace(BOT_INVISIBLE_RE, ""); }
+  function countInvisible(s){ var m = String(s == null ? "" : s).match(BOT_INVISIBLE_RE); return m ? m.length : 0; }
+  /* 投稿を API から取り直して、件数と「見えない文字」の混入を数える。
+     画面から渡された値は使わないので、表示を書き換えても偽装できない。 */
+  async function botPostStats(uid, windowMs){
+    var out = { recent: -1, invis_hits: -1, invis_max: 0, invis_ids: [] };
+    try {
+      var r = await K.handlers.get_user_posts([String(uid), ""]);
+      var ps = (r && r.posts) || [];
+      var now = Date.now(), recent = 0, hits = 0, max = 0, ids = [];
+      ps.forEach(function(p){
+        var t = Date.parse(p.created_at || "");
+        if (t && now - t <= windowMs) recent++;
+        var n = countInvisible(p.description != null ? p.description : (p.text || p.comment || ""));
+        if (n <= 0) return;
+        hits++;
+        if (n > max) max = n;
+        if (ids.length < 10) ids.push(p.id);
+      });
+      out = { recent: recent, invis_hits: hits, invis_max: max, invis_ids: ids };
+    } catch (e) {}
+    return out;
   }
   var BOT_BIO_RE = /(https?:\/\/|line|ライン|ｌｉｎｅ|カカオ|kakao|tiktok|ティックトック|副業|副収入|稼げ|稼ぎ|投資|fx|仮想通貨|ビットコイン|バイナリ|パパ活|裏垢|大人の|割り切り|ホ別|ｄｍ|dm下さい|dmください|@[a-z0-9_]{3,}|id[:：]|検索して)/;
   async function botEval(u, uid, allowPostFetch){
@@ -119,16 +143,25 @@
     var fol = u.follower_count != null ? Number(u.follower_count) : -1, fee = u.followee_count != null ? Number(u.followee_count) : -1, fr = u.friend_count != null ? Number(u.friend_count) : -1, liked = u.liked_count != null ? Number(u.liked_count) : -1;
     var a2 = fol === 0 && fee === 0 && fr === 0 && liked === 0;
     var a2near = !a2 && fol >= 0 && fee >= 0 && fr >= 0 && liked >= 0 && fol <= 2 && fee <= 2 && fr === 0 && liked <= 2;
-    var cm = u.comment == null ? "" : String(u.comment); var a3 = cm.trim().length === 0;
+    /* 見えない文字を先に取り除いてから中身を見る(挟むだけで語句の照合を抜けられるため) */
+    var cm = stripInvisible(u.comment == null ? "" : String(u.comment)); var a3 = cm.trim().length === 0;
     var a3bio = !a3 && BOT_BIO_RE.test(cm.toLowerCase().replace(/\s+/g, ""));
     var av = u.age_verification_status != null ? Number(u.age_verification_status) : -1; var a4 = av === 0;
-    var nm = String(u.name || ""); var nameHit = /^[^\s]{1,20}[0-9]{3}$/.test(nm) && !/^[0-9]+$/.test(nm);
+    var nm = stripInvisible(u.name || ""); var nameHit = /^[^\s]{1,20}[0-9]{3}$/.test(nm) && !/^[0-9]+$/.test(nm);
     var feat = u.feature == null ? "" : String(u.feature); var near = botKnownNear(uid), knownFeat = botKnownFeature(uid, feat);
     /* 量産型の 4 特徴のうち 3 つ + 補強材料(名前の型・既知botとの連番/同一端末・勧誘文)でも量産型とみなす(Android 版と同じ) */
     var core = (a1 ? 1 : 0) + ((a2 || a2near) ? 1 : 0) + ((a3 || a3bio) ? 1 : 0) + (a4 ? 1 : 0);
     if (nameHit) botRememberNameHit(uid);
     var nameCluster = nameHit ? botNameHitNeighbors(uid) : 0;
-    var hard = core >= 4 || (core >= 3 && (nameHit || near || knownFeat || a3bio)) || (core >= 2 && nameHit) || (nameHit && nameCluster >= 2);
+    /* 申請の判定をするときだけ投稿を取り直して数える */
+    var recent = -1, invisHits = -1, invisMax = 0, invisIds = [];
+    if (allowPostFetch) {
+      var ps = await botPostStats(uid, 3600000);
+      recent = ps.recent; invisHits = ps.invis_hits; invisMax = ps.invis_max; invisIds = ps.invis_ids;
+    }
+    /* 実測(タイムライン 593 件): 普通の利用者は多くても 1 投稿に 1〜2 個、業者は 39〜41 個を全投稿に混ぜていた */
+    var zwEvade = invisHits >= 2 && invisMax >= 3;
+    var hard = core >= 4 || (core >= 3 && (nameHit || near || knownFeat || a3bio)) || (core >= 2 && nameHit) || (nameHit && nameCluster >= 2) || zwEvade;
     if (hard) { rs.push(genIcon ? "量産型アイコン名" : (noIcon ? "アイコン未設定" : "量産型の特徴が3つ以上")); if (a2 && a3 && a4) rs.push("交流0・自己紹介なし・年齢確認なし"); else if (a2near) rs.push("交流ほぼ0"); if (a3bio) rs.push("自己紹介に勧誘・誘導の語句"); }
     Object.assign(ev, { icon_file: fn, follower_count: fol, followee_count: fee, friend_count: fr, liked_count: liked, comment_empty: a3, comment_suspicious: a3bio, age_verification_status: av, core_hits: core, A1_icon16: a1, A2_all_zero: a2, A2_near_zero: a2near, A3_no_bio: a3, A4_no_age_verify: a4, icon_kind: genIcon ? "generated" : (noIcon ? "none" : "normal") });
     var sc = 0; ev.name = nm;
@@ -139,16 +172,30 @@
     ev.feature = feat.slice(0, 120);
     if (hard && knownFeat) { sc += 3; rs.push("既知botと同一feature"); }
     if (hard && nameCluster >= 2) { sc += 3; rs.push("同型の名前(単語+3桁)がID近接で複数"); }
+    /* 2 つでも「同型の名前が ID 近接」は十分に不自然(先に見つけた 1 人目の取りこぼし対策) */
+    else if (hard && nameCluster === 1) { sc += 2; rs.push("同型の名前(単語+3桁)がID近接"); }
     ev.name_cluster = nameCluster;
+    if (zwEvade) { sc += 4; rs.push("本文に見えない文字を大量に混ぜている(フィルター回避)"); }
+    else if (invisMax >= 3) { sc += 2; rs.push("本文に見えない文字が混ざっている"); }
+    ev.invis_hits = invisHits; ev.invis_max = invisMax; ev.invis_post_ids = invisIds;
     var rm = truthy(u.random_match_enabled) || (u.settings && truthy(u.settings.random_match_enabled)); ev.random_match_enabled = !!rm;
     if (rm && (a2 || a2near)) { sc += 1.5; rs.push("ランダムマッチON+交流0"); }
     var ls = String(u.login_status_with_unit || ""); ev.login_status = ls;
     if (/1時間以内|分以内|オンライン/.test(ls)) { sc += 0.5; rs.push("直近ログイン"); }
-    if (hard && allowPostFetch && sc >= BOT_MARK_SCORE && sc < BOT_AUTO_SCORE) { var recent = await botRecentPosts(uid, 3600000); ev.posts_last_hour = recent; if (recent >= 5) { sc += 2; rs.push("直近1時間に" + recent + "件投稿"); } }
+    ev.posts_last_hour = recent;
+    if (hard && recent >= 5) { sc += 2; rs.push("直近1時間に" + recent + "件投稿"); }
     var level = hard ? (sc >= BOT_AUTO_SCORE ? "high" : (sc >= BOT_MARK_SCORE ? "mid" : "")) : "";
     Object.assign(ev, { score: sc, level: level, checked_at: nowStr(), checked_by: "KoeTomo+ auto" });
     if (hard) botRemember(uid, feat);
     return { hard: hard, score: sc, level: level, reasons: rs, ev: ev };
+  }
+  /* 判定の規則を変えたら「確認済み」を一度だけ捨てる(でないと前の規則で見送った相手を最長7日調べ直さない) */
+  var BOT_RULES_VERSION = "2";
+  function botRulesMigrate(){
+    if (pref("bot_rules_version") === BOT_RULES_VERSION) return;
+    pref("bot_rules_version", BOT_RULES_VERSION);
+    jput("bot_auto_seen", [], 1);
+    log(nowStr() + "  [BOTAUTO] 判定規則を更新したので確認済みの記録を消しました v=" + BOT_RULES_VERSION);
   }
   function botAutoGate(uid){
     if (Date.now() - BOT_START < 10000) return "起動直後は判定しません";
@@ -165,6 +212,7 @@
   h.moderation_auto_spam = async function(a){
     var uid = num(a[1], 0); if (!uid) return { ok: false, error: "対象不明" };
     if (uid === state.userId) return { ok: true, applied: false, skip: "self" };
+    botRulesMigrate();
     var gate = botAutoGate(uid); if (gate) return { ok: true, applied: false, skip: gate };
     var now = Date.now(), keep = [], seenAlready = false;
     jarr("bot_auto_seen").forEach(function(o){ if (!o || now - Number(o.t) > 604800000) return; if (Number(o.u) === uid) seenAlready = true; keep.push(o); });
@@ -189,11 +237,18 @@
   function botReportBody(uid, ev){
     var e = ev.ev || {}; var cluster = Number(e.name_cluster || 0) >= 2;
     var nearKnown = ev.reasons.indexOf("既知botとID連番") >= 0, sameFeat = ev.reasons.indexOf("既知botと同一feature") >= 0;
-    var confidence = (cluster || nearKnown || sameFeat) && ev.score >= BOT_AUTO_SCORE ? "confirmed" : "high";
+    /* 見えない文字での照合すり抜けは、サーバーが同じ投稿を取り直せば必ず同じ個数を数えられる材料なので
+       これも「確定」の根拠にする */
+    var zwEvade = Number(e.invis_hits || 0) >= 2 && Number(e.invis_max || 0) >= 3;
+    var confidence = (cluster || nearKnown || sameFeat || zwEvade) && ev.score >= BOT_AUTO_SCORE ? "confirmed" : "high";
     var neighbors = [];
     jarr("bot_namehits").forEach(function(v){ v = Number(v); if (v && v !== uid && Math.abs(v - uid) <= 100) neighbors.push(v); });
     jarr("bot_cands").forEach(function(o){ var v = o && Number(o.u); if (v && v !== uid && Math.abs(v - uid) <= 20) neighbors.push(v); });
-    e.verify = { target_uid: uid, neighbor_uids: neighbors, checked_at_ms: Date.now(), rules: "core>=4 | core>=3+aux | core>=2+namepattern | namepattern+cluster>=2" };
+    /* サーバーが自分で取り直して同じ結論に辿り着けるように材料と規則を添える。
+       invis_post_ids はその投稿を取り直して数え直せば検証できる。 */
+    e.verify = { target_uid: uid, neighbor_uids: neighbors, checked_at_ms: Date.now(),
+      invis_post_ids: e.invis_post_ids || [],
+      rules: "core>=4 | core>=3+aux | core>=2+namepattern | namepattern+cluster>=2 | invisible>=2posts&>=3chars" };
     return { target_uid: String(uid), reason_code: "bot", detail: "[KoeTomo+ 業者自動判定(自動申請) score=" + ev.score + (confidence === "confirmed" ? " 確定" : "") + "] " + ev.reasons.join("・"), evidence: JSON.stringify(e), reporter_uid: String(state.userId), auto: true, confidence: confidence, client: "koetomoplus-ios/" + iosAppVersion(), reporter_name: state.userName || "", target_name: String(e.name || "") };
   }
   function iosAppVersion(){ try { var r = JSON.parse(window.AndroidApi && window.AndroidApi.appVersion ? window.AndroidApi.appVersion() : "{}"); return (r && r.name) || "?"; } catch (e) { return "?"; } }
