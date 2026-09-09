@@ -540,7 +540,32 @@
     room_kick_user: async function(a){ if (!a[0] || !a[1]) return { ok: false, message: "room_id/target_id不明" }; return okResult(await request("POST", "/api/rooms/" + a[0] + "/kick", null, { target_id: a[1] })); },
     room_close: async function(a){ if (!a[0]) return { ok: false, message: "room_id不明" }; var r = await request("DELETE", "/api/rooms/" + a[0], null, null); pref("my_open_room", null); return okResult(r); },
     room_update_title: async function(a){ if (!a[0]) return { ok: false, message: "room_id不明" }; return okResult(await request("PUT", "/api/rooms/" + a[0], { description: a[1] })); },
-    room_switch_comment_enabled: async function(a){ if (!a[0]) return { ok: false, message: "room_id不明" }; return okResult(await request("PUT", "/api/rooms/" + a[0] + "/switch_comment_enabled", { comment_enabled: (a[1] === false) ? "false" : "true" })); },
+    room_switch_comment_enabled: async function(a){
+      if (!a[0]) return { ok: false, message: "room_id不明" };
+      /* 公式 TalkRoomApi.setCommentEnabled は comment_enabled を 1/0(int) で送る。"true"/"false" は 400(パラメータ異常値) */
+      var q = { comment_enabled: (a[1] === false) ? "0" : "1", version: "android_" + APP_VERSION };
+      var r = await request("PUT", "/api/rooms/" + a[0] + "/switch_comment_enabled", q, null);
+      if (r.status === 400) r = await request("PUT", "/api/rooms/" + a[0] + "/switch_comment_enabled", null, q);
+      return okResult(r);
+    },
+    /* 自分のミュート状態を公式アプリと同じ場所へ(公式 TalkRoomViewModel.setMute 相当)。
+       api/rooms/{id}/mute_status/{自分} = 1/0 … 公式クライアントのミュートアイコン
+       ミュート時のみ room_data に Volume コマンド(2) {user_id, volume:0} … 公式のマイクレベル表示を消す
+       音声そのものの停止は SkyWay 側(publication.disable)。ここは表示用の合図だけ。 */
+    room_mute_status: async function(a){
+      if (!a[0]) return { ok: false, message: "room_id不明" };
+      if (!state.userId) return { ok: false, message: "user_id不明" };
+      var muted = String(a[1]) === "1";
+      var base = "https://koetomo-bb8bb.firebaseio.com/api/rooms/" + a[0];
+      var r = await native("__http", [{ method: "PUT", url: base + "/mute_status/" + state.userId + ".json", headers: { "Content-Type": "application/json" }, body: muted ? "1" : "0", timeout: 12000 }]);
+      if (muted) {
+        try {
+          var body = JSON.stringify({ command: 2, args: { user_id: Number(state.userId), volume: 0 } });
+          await native("__http", [{ method: "PUT", url: base + "/room_data.json", headers: { "Content-Type": "application/json" }, body: body, timeout: 12000 }]);
+        } catch (e) {}
+      }
+      return { ok: r.status >= 200 && r.status < 300, status: r.status };
+    },
     room_invite: async function(a){ if (!a[0] || !a[1]) return { ok: false, message: "room_id/target_id不明" }; return okResult(await request("POST", "/api/rooms/" + a[0] + "/invite", { target_ids: a[1] }, {})); },
     room_data_send: async function(a){
       if (!a[0]) return { ok: false, message: "room_id不明" };

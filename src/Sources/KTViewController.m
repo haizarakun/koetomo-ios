@@ -195,7 +195,7 @@ static BOOL debuggerAttached(void) {
     WKUserContentController *ucc = [WKUserContentController new];
     [ucc addScriptMessageHandler:self name:@"koe"];
     // ブリッジ(AndroidApi 互換)と JS 版セッション(API 層)を、ページの JS より先に注入する
-    for (NSString *name in @[@"ios-bridge.js", @"ios-session.js", @"ios-session-ext3.js", @"ios-session-ext4.js", @"ios-session-ext5.js"]) {
+    for (NSString *name in @[@"ios-bridge.js", @"ios-session.js", @"ios-session-ext3.js", @"ios-session-ext4.js", @"ios-session-ext5.js", @"ios-session-ext6.js"]) {
         NSString *path = [[NSBundle mainBundle] pathForResource:[name stringByDeletingPathExtension] ofType:@"js" inDirectory:@"web/ios"];
         NSString *src = path ? [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:nil] : nil;
         if (src.length) {

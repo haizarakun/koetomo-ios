@@ -155,9 +155,9 @@
     if (jarr("bot_auto_done").some(function(v){ return Number(v) === uid; })) return "この相手は申請済みです";
     var now = Date.now(), last = 0, inHour = 0, inDay = 0;
     jarr("bot_auto_log").forEach(function(t){ t = Number(t); if (now - t < 86400000) { inDay++; if (now - t < 3600000) inHour++; if (t > last) last = t; } });
-    if (last && now - last < 30000) return "自動申請の間隔制限中";
-    if (inHour >= 3) return "自動申請は1時間3件までです";
-    if (inDay >= 10) return "自動申請は1日10件までです";
+    if (last && now - last < 8000) return "自動申請の間隔制限中";
+    if (inHour >= 30) return "自動申請は1時間30件までです";
+    if (inDay >= 150) return "自動申請は1日150件までです";
     return "";
   }
   function botAutoMark(uid){ var now = Date.now(); var keep = jarr("bot_auto_log").filter(function(t){ return now - Number(t) < 86400000; }); keep.push(now); jput("bot_auto_log", keep, 60); var done = jarr("bot_auto_done"); done.push(uid); jput("bot_auto_done", done, 3000); }
