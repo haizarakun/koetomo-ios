@@ -8,13 +8,13 @@ Depends: firmware (>= 14.0)
 Tag: compatible_min::ios14.0
 Depiction: https://github.com/haizarakun/koetomo-ios
 Architecture: iphoneos-arm
-Version: 1.05
-Installed-Size: 3212
-Filename: debs/com.akun.koetomo_1.05_iphoneos-arm.deb
-Size: 924718
-MD5sum: 7cd95dc0078db18d866e26bd3c1139c3
-SHA1: 548cc26076f617e252d0ec49d1e52f9e699fad87
-SHA256: 49d69dfe7a032812782896d2ed61be4598ba3d03a0e94c9368975764a15ea8f3
+Version: 1.06
+Installed-Size: 3220
+Filename: debs/com.akun.koetomo_1.06_iphoneos-arm.deb
+Size: 926950
+MD5sum: 3d5fa2c613676d0f51c4c6adfa43e4f0
+SHA1: 5f7348495349be3436e986a65aae2b2ae57415c4
+SHA256: 01be59b83cf4d6d26d895b76819ad29eefe5d02b141ebf7285d90f442ec27248
 Depiction: https://github.com/haizarakun/koetomo-ios
 Icon: https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/repo/icon.png
 
@@ -28,13 +28,13 @@ Depends: firmware (>= 14.0)
 Tag: compatible_min::ios14.0
 Depiction: https://github.com/haizarakun/koetomo-ios
 Architecture: iphoneos-arm64
-Version: 1.05
-Installed-Size: 3212
-Filename: debs/com.akun.koetomo_1.05_iphoneos-arm64.deb
-Size: 924832
-MD5sum: c8dcd7b1984a97b0c6c766cbbfff824d
-SHA1: 522aa15c9bd18a03c5112db78451c122cdb80bd4
-SHA256: 279f80df95f976a341a6582c120e0d7f695f5a71409a582aa3eed4a2b272178b
+Version: 1.06
+Installed-Size: 3220
+Filename: debs/com.akun.koetomo_1.06_iphoneos-arm64.deb
+Size: 927180
+MD5sum: 1694967caf66ab84839e36f5772f7b88
+SHA1: c42eabd8a4594727348a5af61a1ec2a5d2edeca6
+SHA256: 0f704687535e419be4011fa158815162341e6cda26f65fccc300de2932f0d26d
 Depiction: https://github.com/haizarakun/koetomo-ios
 Icon: https://raw.githubusercontent.com/haizarakun/koetomo-ios/main/repo/icon.png
 
