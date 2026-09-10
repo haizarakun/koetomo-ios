@@ -100,6 +100,7 @@
   };
   /* ---- 業者(bot)判定: Android 版 botEval と同じ規則 ---- */
   var BOT_START = Date.now(), BOT_AUTO_SCORE = 6.0, BOT_MARK_SCORE = 3.0;
+  var ZW_MIN_POSTS = 2, ZW_MIN_PER_POST = 3;
   function strHash(s){ var hsh = 0; for (var i = 0; i < s.length; i++) { hsh = (hsh * 31 + s.charCodeAt(i)) | 0; } return String(hsh); }
   function botUserOf(body){ var d = body && body.data && typeof body.data === "object" ? body.data : null; return (d && (d.user_info || d.userInfo)) || body.user_info || d || body || {}; }
   /* 「単語+3桁数字」型の名前の ID を覚え、同型の名前が ID 近接(±100)で他に 2 人以上いれば量産アカウント群とみなす */
@@ -108,14 +109,12 @@
   function botKnownNear(uid){ return jarr("bot_cands").some(function(o){ var v = o && Number(o.u); return v && v !== uid && Math.abs(v - uid) <= 20; }); }
   function botKnownFeature(uid, feat){ if (!feat) return false; var fh = strHash(feat); return jarr("bot_cands").some(function(o){ return o && Number(o.u) !== uid && String(o.f || "") === fh; }); }
   function botRemember(uid, feat){ var a = jarr("bot_cands"), fh = feat ? strHash(feat) : "", found = false; a.forEach(function(o){ if (o && Number(o.u) === uid) { o.f = fh; o.t = Date.now(); found = true; } }); if (!found) a.push({ u: uid, f: fh, t: Date.now() }); jput("bot_cands", a, 400); }
-  /* 本文に混ぜられた「目に見えない文字」。ゼロ幅スペース(U+200B)や方向制御(U+202A〜202E)は
-     画面に何も出ないので、一文字ずつの間に挟むと見た目はそのままで NG ワードの照合だけをすり抜けられる。
+  /* 画面に表示されない文字。文字列を突き合わせる前に取り除く。
      絵文字の異体字セレクタ(U+FE0E / U+FE0F)は正当な使い方なので数えない。 */
   var BOT_INVISIBLE_RE = /[\u00AD\u061C\u180E\u200B-\u200F\u202A-\u202E\u2060-\u2064\u2066-\u206F\uFEFF]/g;
   function stripInvisible(s){ return String(s == null ? "" : s).replace(BOT_INVISIBLE_RE, ""); }
   function countInvisible(s){ var m = String(s == null ? "" : s).match(BOT_INVISIBLE_RE); return m ? m.length : 0; }
-  /* 投稿を API から取り直して、件数と「見えない文字」の混入を数える。
-     画面から渡された値は使わないので、表示を書き換えても偽装できない。 */
+  /* 投稿を取り直して、件数と見えない文字の混入を数える(画面から渡された値は使わない) */
   async function botPostStats(uid, windowMs){
     var out = { recent: -1, invis_hits: -1, invis_max: 0, invis_ids: [] };
     try {
@@ -143,7 +142,7 @@
     var fol = u.follower_count != null ? Number(u.follower_count) : -1, fee = u.followee_count != null ? Number(u.followee_count) : -1, fr = u.friend_count != null ? Number(u.friend_count) : -1, liked = u.liked_count != null ? Number(u.liked_count) : -1;
     var a2 = fol === 0 && fee === 0 && fr === 0 && liked === 0;
     var a2near = !a2 && fol >= 0 && fee >= 0 && fr >= 0 && liked >= 0 && fol <= 2 && fee <= 2 && fr === 0 && liked <= 2;
-    /* 見えない文字を先に取り除いてから中身を見る(挟むだけで語句の照合を抜けられるため) */
+    /* 見えない文字を取り除いてから中身を見る */
     var cm = stripInvisible(u.comment == null ? "" : String(u.comment)); var a3 = cm.trim().length === 0;
     var a3bio = !a3 && BOT_BIO_RE.test(cm.toLowerCase().replace(/\s+/g, ""));
     var av = u.age_verification_status != null ? Number(u.age_verification_status) : -1; var a4 = av === 0;
@@ -159,8 +158,7 @@
       var ps = await botPostStats(uid, 3600000);
       recent = ps.recent; invisHits = ps.invis_hits; invisMax = ps.invis_max; invisIds = ps.invis_ids;
     }
-    /* 実測(タイムライン 593 件): 普通の利用者は多くても 1 投稿に 1〜2 個、業者は 39〜41 個を全投稿に混ぜていた */
-    var zwEvade = invisHits >= 2 && invisMax >= 3;
+    var zwEvade = invisHits >= ZW_MIN_POSTS && invisMax >= ZW_MIN_PER_POST;
     var hard = core >= 4 || (core >= 3 && (nameHit || near || knownFeat || a3bio)) || (core >= 2 && nameHit) || (nameHit && nameCluster >= 2) || zwEvade;
     if (hard) { rs.push(genIcon ? "量産型アイコン名" : (noIcon ? "アイコン未設定" : "量産型の特徴が3つ以上")); if (a2 && a3 && a4) rs.push("交流0・自己紹介なし・年齢確認なし"); else if (a2near) rs.push("交流ほぼ0"); if (a3bio) rs.push("自己紹介に勧誘・誘導の語句"); }
     Object.assign(ev, { icon_file: fn, follower_count: fol, followee_count: fee, friend_count: fr, liked_count: liked, comment_empty: a3, comment_suspicious: a3bio, age_verification_status: av, core_hits: core, A1_icon16: a1, A2_all_zero: a2, A2_near_zero: a2near, A3_no_bio: a3, A4_no_age_verify: a4, icon_kind: genIcon ? "generated" : (noIcon ? "none" : "normal") });
@@ -175,7 +173,7 @@
     /* 2 つでも「同型の名前が ID 近接」は十分に不自然(先に見つけた 1 人目の取りこぼし対策) */
     else if (hard && nameCluster === 1) { sc += 2; rs.push("同型の名前(単語+3桁)がID近接"); }
     ev.name_cluster = nameCluster;
-    if (zwEvade) { sc += 4; rs.push("本文に見えない文字を大量に混ぜている(フィルター回避)"); }
+    if (zwEvade) { sc += 4; rs.push("本文に見えない文字が多数混ざっている"); }
     else if (invisMax >= 3) { sc += 2; rs.push("本文に見えない文字が混ざっている"); }
     ev.invis_hits = invisHits; ev.invis_max = invisMax; ev.invis_post_ids = invisIds;
     var rm = truthy(u.random_match_enabled) || (u.settings && truthy(u.settings.random_match_enabled)); ev.random_match_enabled = !!rm;
@@ -237,9 +235,7 @@
   function botReportBody(uid, ev){
     var e = ev.ev || {}; var cluster = Number(e.name_cluster || 0) >= 2;
     var nearKnown = ev.reasons.indexOf("既知botとID連番") >= 0, sameFeat = ev.reasons.indexOf("既知botと同一feature") >= 0;
-    /* 見えない文字での照合すり抜けは、サーバーが同じ投稿を取り直せば必ず同じ個数を数えられる材料なので
-       これも「確定」の根拠にする */
-    var zwEvade = Number(e.invis_hits || 0) >= 2 && Number(e.invis_max || 0) >= 3;
+    var zwEvade = Number(e.invis_hits || 0) >= ZW_MIN_POSTS && Number(e.invis_max || 0) >= ZW_MIN_PER_POST;
     var confidence = (cluster || nearKnown || sameFeat || zwEvade) && ev.score >= BOT_AUTO_SCORE ? "confirmed" : "high";
     var neighbors = [];
     jarr("bot_namehits").forEach(function(v){ v = Number(v); if (v && v !== uid && Math.abs(v - uid) <= 100) neighbors.push(v); });
