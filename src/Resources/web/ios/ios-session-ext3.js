@@ -13,21 +13,60 @@
   // 画像は必ず PNG で上げる。
   // S3 へ置いたあとサーバー側が同じ名前の .webp を作り、公式アプリも Web も
   // <名前>.webp を読みに行く。.jpg で置くと .webp が作られず、本人以外には出ない(403)。
-  function toPngB64(b64){
+  // 上げる画像の作り方。置く時の名前は必ず .png にする(サーバーは名前が .png のものだけ
+  // 表示用に作り直すので、.jpg で置くと本人以外に画像が出ない)。
+  // 中身は公式アプリと同じ大きさ・画質にする。元の大きさのまま無圧縮で上げていたころは
+  // 1 枚が数 MB になり、投稿が終わるまで長く待たされていた。
+  var UPLOAD_IMAGE_MAX = 900, UPLOAD_IMAGE_QUALITY = 0.5;
+  function toUploadImageB64(b64){
     return new Promise(function (resolve) {
-      if (!b64IsJpeg(b64)) { resolve(b64); return; }
+      if (!b64) { resolve(b64); return; }
       try {
         var img = new Image();
         img.onload = function () {
           try {
+            var w = img.naturalWidth, h = img.naturalHeight;
+            var longSide = Math.max(w, h);
+            if (longSide > UPLOAD_IMAGE_MAX) {
+              var r = UPLOAD_IMAGE_MAX / longSide;
+              w = Math.max(1, Math.round(w * r));
+              h = Math.max(1, Math.round(h * r));
+            }
             var cv = document.createElement("canvas");
-            cv.width = img.naturalWidth; cv.height = img.naturalHeight;
-            cv.getContext("2d").drawImage(img, 0, 0);
+            cv.width = w; cv.height = h;
+            cv.getContext("2d").drawImage(img, 0, 0, w, h);
+            resolve(cv.toDataURL("image/jpeg", UPLOAD_IMAGE_QUALITY).split(",")[1] || b64);
+          } catch (e) { resolve(b64); }
+        };
+        img.onerror = function () { resolve(b64); };
+        img.src = (b64IsJpeg(b64) ? "data:image/jpeg;base64," : "data:image/png;base64,") + b64;
+      } catch (e) { resolve(b64); }
+    });
+  }
+  // アイコン・ヘッダーは公式アプリと同じく PNG のまま上げる(小さく写るので画質を落とさない)。
+  // 大きすぎるものだけ縮める。
+  function toPngB64(b64){
+    return new Promise(function (resolve) {
+      if (!b64) { resolve(b64); return; }
+      try {
+        var img = new Image();
+        img.onload = function () {
+          try {
+            var w = img.naturalWidth, h = img.naturalHeight;
+            var longSide = Math.max(w, h);
+            if (longSide > 720) {
+              var r = 720 / longSide;
+              w = Math.max(1, Math.round(w * r));
+              h = Math.max(1, Math.round(h * r));
+            }
+            var cv = document.createElement("canvas");
+            cv.width = w; cv.height = h;
+            cv.getContext("2d").drawImage(img, 0, 0, w, h);
             resolve(cv.toDataURL("image/png").split(",")[1] || b64);
           } catch (e) { resolve(b64); }
         };
         img.onerror = function () { resolve(b64); };
-        img.src = "data:image/jpeg;base64," + b64;
+        img.src = (b64IsJpeg(b64) ? "data:image/jpeg;base64," : "data:image/png;base64,") + b64;
       } catch (e) { resolve(b64); }
     });
   }
@@ -71,15 +110,20 @@
     if (window.__koeMyDeco) f.decoration_item_id = window.__koeMyDeco;
     if (state.token) f.auth_token = state.token;
     var sig = endpoint + " " + (description || "") + " " + (imagePath || "") + " " + (voicePath || "");
-    if (sig === lastPost.sig && Date.now() - lastPost.t < 15000) { log(nowStr() + "  [POST] 同一内容の連続投稿を抑止 " + endpoint); return { status: 200, body: null, vsns: -999 }; }
-    lastPost = { sig: sig, t: Date.now() };
+    if (sig === lastPost.sig && Date.now() - lastPost.t < 15000) {
+      log(nowStr() + "  [POST] 同一内容の連続投稿を抑止 " + endpoint);
+      /* 送っていないことが画面側に伝わるよう印を付ける。素の 200 だと「投稿しました」と出てしまう */
+      return { status: 200, body: { duplicate: true }, vsns: -999 };
+    }
     var r = await http("POST", BASE + endpoint, null, f); if (r.status === 404) r = await http("POST", BASE2 + endpoint, null, f);
+    /* 覚えるのは成功したときだけ。失敗を覚えると、直後のやり直しが偽の成功になる */
+    if (r.status >= 200 && r.status < 300) lastPost = { sig: sig, t: Date.now() };
     log(nowStr() + "  [POST] " + endpoint + " HTTP " + r.status); return r;
   }
   async function createPostWithImage(endpoint, text, purpose, dataUrl){
     var b64 = stripDataUrl(dataUrl); if (!b64) return { ok: false, message: "画像がありません" };
     try {
-      var up = await s3Upload(await toPngB64(b64), "png", "image/png");
+      var up = await s3Upload(await toUploadImageB64(b64), "png", "image/png");
       log(nowStr() + "  [IMGPOST] S3 OK key=" + up.key);
       return okResult(await postToSeries(endpoint, text, purpose, up.bare, null, up.md5, "0"));
     } catch (e) { return { ok: false, message: "画像アップロード失敗: " + (e && e.message) }; }
@@ -129,9 +173,14 @@
   handlers.create_feed_post_with_voice = async function(a){ return await createPostWithVoice("/api/timeline_posts", a[0], a[1], a[2], a[3], "0", a[4] || "0"); };
   handlers.create_feed_post = async function(a){ return okResult(await postToSeries("/api/timeline_posts", a[0], a[1] || "0", null, null, null, "0")); };
   // ---- DM 添付 ----
+  // 投稿画面を開いた時の下ごしらえ。画像・音声を置くための一時的な利用許可を先に取っておく。
+  handlers.warm_upload = async function(){
+    try { await cognitoCreds(await imageS3Config()); } catch (e) {}
+    return { ok: true };
+  };
   handlers.send_image_message = async function(a){
     var b64 = stripDataUrl(a[2]); if (!b64) return { ok: false, message: "画像がありません" };
-    try { var up = await s3Upload(await toPngB64(b64), "png", "image/png");
+    try { var up = await s3Upload(await toUploadImageB64(b64), "png", "image/png");
       var r = await http("POST", BASE + "/api/chat/messages", null, { target_id: a[1], chat_id: a[0], uid: String(state.userId), message_type: "2", binary_file_path: up.bare, md5: up.md5, version: "android_" + APP_VERSION, auth_token: state.token }); return okResult(r, true); }
     catch (e) { return { ok: false, message: String(e && e.message) }; }
   };

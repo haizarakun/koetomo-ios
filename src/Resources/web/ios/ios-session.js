@@ -2,7 +2,7 @@
    HTTP はネイティブ(__http)に中継させ、API の組み立て・応答の正規化はここで行う。
    未移植のコマンドは {ok:false, error:"not_ported"} を返す(画面側が「未対応」と表示する)。 */
 (function(){
-  var APP_VERSION = "3.9.101";
+  var APP_VERSION = "3.9.102";
   var UA = "okhttp/4.12.0";
   var BASE = "https://api.meetscom.com";
   var BASE2 = "https://api2.meetscom.com";
@@ -56,6 +56,23 @@
      旧サーバー(api)が 8 秒以上かかったら 120 秒間は api2 を先に試す。api2 に無い(404)パスは覚えて飛ばす。 */
   var SLOW_HOST_MS = 8000, SLOW_HOST_PENALTY_MS = 120000;
   var slowHostUntil = {}, api2MissingPaths = {};
+  /* api2 だけが「ユーザーが見つかりませんでした」(403)を返すことがある。
+     トークンは server1 で通っているので、これはセッション切れではなく api2 側の都合。
+     その間 api2 に回すと全部 403 になるので、10 分は api2 を使わない。 */
+  var api2AuthBadUntil = 0;
+  function api2AuthBad(){ return api2AuthBadUntil > Date.now(); }
+  function isAuthErrorBody(r){
+    if (!r || r.status !== 403 || !r.body) return false;
+    var b = r.body;
+    if (Number(b.code) === 1000) return true;
+    if (b.error && Number(b.error.code) === 1000) return true;
+    if (b.data && Number(b.data.code) === 1000) return true;
+    return false;
+  }
+  function noteApi2AuthBad(){
+    if (!api2AuthBad()) log(nowStr() + "  [HOST] api2 が認証を受け付けない → 600秒間は使わない");
+    api2AuthBadUntil = Date.now() + 600000;
+  }
   var SERVER1_ONLY_PATHS = ["/api/account/login", "/api/chats"];
   function isHostSlow(host){ return (slowHostUntil[host] || 0) > Date.now(); }
   function pathKeyOf(path){ return path.split("?")[0].replace(/\/\d+/g, "/{n}"); }
@@ -68,15 +85,15 @@
   /* Java の request(): version/auth_token をクエリに足し、api → api2 の順に試す(200 したホストを覚える) */
   async function request(method, path, query, fields){
     var q = {}; Object.keys(query || {}).forEach(function(k){ var v = query[k]; if (v !== undefined && v !== null && String(v).length) q[k] = v; });
-    // 公式はパラメータの version を必ず "android_3.9.101" の形で送る
-    // (素の "3.9.101" は設定ファイルの URL にしか使っていない)。こちらも全窓口で揃える。
+    // 公式はパラメータの version を必ず "android_<バージョン>" の形で送る
+    // (素の "<バージョン>" は設定ファイルの URL にしか使っていない)。こちらも全窓口で揃える。
     if (!("version" in q)) q.version = "android_" + APP_VERSION;
     if (state.token && !("auth_token" in q)) q.auth_token = state.token;
     var ck = method + " " + path.replace(/\/\d+/g, "/{n}");
     var pk = pathKeyOf(path);
     var first = state.hostCache[ck] || BASE;
     /* 振り替えは読み取り(GET)だけ。書き込みは公式と同じ server1 固定(api2 は 403「権限がありません」) */
-    if (method === "GET" && first === BASE && isHostSlow(BASE) && !isHostSlow(BASE2) && !api2MissingPaths[pk] && !isServer1Only(path)) first = BASE2;
+    if (method === "GET" && first === BASE && !api2AuthBad() && isHostSlow(BASE) && !isHostSlow(BASE2) && !api2MissingPaths[pk] && !isServer1Only(path)) first = BASE2;
     var hosts = []; [first, BASE2, BASE].forEach(function(h){ if (hosts.indexOf(h) < 0) hosts.push(h); });
     if (api2MissingPaths[pk] || isServer1Only(path)) hosts = hosts.filter(function(h){ return h !== BASE2 || h === first; });
     var last = { status: 0, body: null };
@@ -85,6 +102,8 @@
       if (r.status === 200) { state.hostCache[ck] = hosts[i]; return r; }
       last = r;
       if (r.status === 404 && hosts[i] === BASE2) api2MissingPaths[pk] = true;
+      /* api2 だけが認証を弾いたときは、覚えておいて次のホスト(server1)でやり直す */
+      if (hosts[i] === BASE2 && isAuthErrorBody(r)) { noteApi2AuthBad(); continue; }
       if (r.status === 404 && r.text && String(r.text).indexOf("対象のデータが存在しません") >= 0) return r; // 単に空。別ホストへ聞き直さない
       if (r.status >= 400 && r.status < 500 && r.status !== 404) return r;
     }
