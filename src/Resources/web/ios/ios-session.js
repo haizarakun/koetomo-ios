@@ -148,6 +148,16 @@
   }
   function okResult(r, statusOnly){ var ok = r.status >= 200 && r.status < 300 && (statusOnly || r.vsns === -999 || r.vsns === 0); var o = { ok: ok, status: r.status, vsns: r.vsns }; if (r.sessionExpired) o.session_expired = true; if (r.body) o.body = r.body; return o; }
   function jsonStatus(r){ return { ok: false, status: r.status, raw: r.text ? String(r.text).slice(0, 300) : "" }; }
+  // 枠に入れなかった理由を、そのまま出しても分からない返事のときに言い換える。
+  // サーバーは「入室できません。」としか出さないので、何をすれば入れるのかが伝わらなかった。
+  function joinRefusedMessage(body, serverText){
+    if (!body || typeof body !== "object") return serverText || "";
+    var code = Number(body.code || 0), title = String(body.title || "");
+    if (code === 2002 || title.indexOf("キック") >= 0) return "この枠からキックされているため入れません。主催者が解除するか、枠が作り直されるまで参加できません。";
+    if (title.indexOf("ブロック") >= 0) return "この枠の主催者とブロックの関係にあるため入れません。";
+    if (title.indexOf("満員") >= 0 || title.indexOf("上限") >= 0) return "この枠は満員です。誰かが抜けてからもう一度お試しください。";
+    return serverText || "";
+  }
   function extractError(b){ if (!b || typeof b !== "object") return null; var c = [b.displayable_detail, b.message, b.error, b.detail, b.data && b.data.message, b.errors && b.errors[0] && (b.errors[0].message || b.errors[0])]; for (var i = 0; i < c.length; i++) if (typeof c[i] === "string" && c[i]) return c[i]; return null; }
 
   /* 公開設定(画像/音声サーバー名) */
@@ -176,13 +186,33 @@
   }
 
   /* ユーザー名解決(v2/users?ids=) */
+  /* このアプリを開いている間に、アイコンを取り直した相手。
+     名前だけ覚えていてアイコンが空のままだと、一覧の丸が頭文字のままになるので 1 回だけ取り直す。 */
+  var iconChecked = {};
+  function hasIcon(id){ var e = state.nameCache[Number(id)]; return !!(e && e[1]); }
   async function resolveNames(ids){
-    var need = []; ids.forEach(function(id){ id = Number(id); if (id && !(state.nameCache[id] && state.nameCache[id][0]) && need.indexOf(id) < 0) need.push(id); });
+    var need = [];
+    ids.forEach(function(id){
+      id = Number(id);
+      if (!id || need.indexOf(id) >= 0) return;
+      var needName = !(state.nameCache[id] && state.nameCache[id][0]);
+      var needIcon = !hasIcon(id) && !iconChecked[id];
+      if (needName || needIcon) need.push(id);
+    });
     if (!need.length) return;
     var r = await request("GET", "/api/v2/users", { ids: need.join(",") });
+    need.forEach(function(id){ iconChecked[id] = 1; });
     var arr = (r.body && (r.body.user_info || (r.body.data && r.body.data.user_info))) || [];
     var changed = false;
-    arr.forEach(function(u){ var id = Number(u.user_id || u.id); var nm = u.name || u.nickname || ""; if (id && nm) { state.nameCache[id] = [nm, u.profile_picture_file_path || ""]; changed = true; } });
+    arr.forEach(function(u){
+      var id = Number(u.user_id || u.id); var nm = u.name || u.nickname || "";
+      if (!id || !nm) return;
+      var icon = u.profile_picture_file_path || "";
+      /* 応答にアイコンが無いときは、前に覚えていたものを消さない */
+      if (!icon && state.nameCache[id] && state.nameCache[id][1]) icon = state.nameCache[id][1];
+      state.nameCache[id] = [nm, icon];
+      changed = true;
+    });
     if (changed) saveNameCache();
   }
   function nameOf(id){ var e = state.nameCache[Number(id)]; return e && e[0] ? e[0] : ("user " + id); }
@@ -370,7 +400,22 @@
     get_official_links: async function(){ return { ok: true, links: [] }; },
     get_badges: async function(){ return { ok: true, badges: [] }; },
     get_account_balance: async function(){ return { ok: true, free_coin: 0, paid_coin: 0, point: 0 }; },
-    get_room_history: async function(){ return { ok: true, history: [] }; },
+    get_room_history: async function(){
+      var h = loadRoomHistory();
+      /* 名前がまだ入っていない記録は、ここで引いて埋める */
+      var need = h.filter(function(o){ return o && !o.owner_name && Number(o.owner_user_id); }).map(function(o){ return Number(o.owner_user_id); });
+      if (need.length) {
+        try { await resolveNames(need); } catch (e) {}
+        var changed = false;
+        h.forEach(function(o){
+          if (!o || o.owner_name) return;
+          var c = state.nameCache[Number(o.owner_user_id)];
+          if (c && c[0]) { o.owner_name = c[0]; if (c[1]) o.owner_icon = iconUrl(c[1]); changed = true; }
+        });
+        if (changed) saveRoomHistory(h);
+      }
+      return { ok: true, history: h };
+    },
     get_activity_heatmap: async function(){ return { ok: true, counts: {}, total: 0 }; },
     get_user_settings: async function(){ var r = await request("GET", "/api/user_settings", {}); return { ok: r.status === 200, settings: (r.body && (r.body.data || r.body)) || {} }; },
     js_diag_log: async function(){ return { ok: true }; },
@@ -411,6 +456,67 @@
   }
   function skywayTokenOf(r){ var b = r.body || {}; var d = b.data || {}; var keys = ["authToken", "token", "auth_token", "skyway_token", "skywayToken", "jwt", "credential"]; for (var i = 0; i < keys.length; i++) { if (typeof d[keys[i]] === "string" && d[keys[i]]) return d[keys[i]]; if (typeof b[keys[i]] === "string" && b[keys[i]]) return b[keys[i]]; } return ""; }
   async function changeRole(roomId, targetId, role){ return okResult(await request("PUT", "/api/rooms/" + roomId + "/change_role", { role: role, target_id: targetId })); }
+  /* ===========================================================================
+     枠に入った記録(端末の中だけに残す)
+
+     ★端末が突然落ちても残るようにするための決めごと(Android 版と同じ):
+       ・記録は「入れた」と分かった直後に書く(名前を引きに行く前)
+       ・まだ枠に居るあいだは open:true のままにし、退出時に閉じる
+       ・閉じないまま次に起動したら、最後の生存時刻で閉じて「途中で終了」の印を付ける
+  =========================================================================== */
+  var openRoomHistorySeq = 0, lastAliveWrite = 0;
+  function loadRoomHistory(){ try { return JSON.parse(pref("room_history") || "[]") || []; } catch (e) { return []; } }
+  function saveRoomHistory(h){ try { pref("room_history", JSON.stringify(h)); } catch (e) {} }
+  function findRoomHistory(h, seq){ for (var i = h.length - 1; i >= 0; i--) if (h[i] && h[i].seq === seq) return h[i]; return null; }
+
+  function appendRoomHistory(ownerId, roomToken, title){
+    try {
+      var h = loadRoomHistory();
+      var seq = Date.now();
+      h.push({ owner_user_id: String(ownerId || ""), room_token: roomToken || "", room_title: title || "",
+               owner_name: "", owner_icon: "", joined_at: nowStr(), alive_at: nowStr(), seq: seq, open: true });
+      while (h.length > 500) h.shift();
+      saveRoomHistory(h);
+      return seq;
+    } catch (e) { return 0; }
+  }
+  /* あとから分かった名前・アイコンを、すでに書いた記録に足す */
+  function enrichRoomHistory(seq, name, iconPath, title){
+    if (!seq) return;
+    try {
+      var h = loadRoomHistory(); var o = findRoomHistory(h, seq); if (!o) return;
+      var changed = false;
+      if (name && !o.owner_name) { o.owner_name = name; changed = true; }
+      if (iconPath && !o.owner_icon) { o.owner_icon = iconUrl(iconPath); changed = true; }
+      if (title && !o.room_title) { o.room_title = title; changed = true; }
+      if (changed) saveRoomHistory(h);
+    } catch (e) {}
+  }
+  /* 枠に居るあいだ、時々「まだ居た」時刻を書く(落ちたときの滞在時間の目安になる) */
+  function touchRoomHistory(){
+    if (!openRoomHistorySeq) return;
+    var now = Date.now();
+    if (now - lastAliveWrite < 30000) return; // 書きすぎない
+    lastAliveWrite = now;
+    try { var h = loadRoomHistory(); var o = findRoomHistory(h, openRoomHistorySeq); if (o && o.open) { o.alive_at = nowStr(); saveRoomHistory(h); } } catch (e) {}
+  }
+  /* 退出した(または起動時に「開きっぱなし」を見つけた)記録を閉じる */
+  function closeOpenRoomHistory(reason){
+    try {
+      var h = loadRoomHistory(); var changed = false;
+      for (var i = h.length - 1; i >= 0; i--) {
+        var o = h[i]; if (!o || !o.open) continue;
+        o.open = false;
+        o.left_at = reason === "leave" ? nowStr() : (o.alive_at || o.joined_at || "");
+        if (reason !== "leave") o.ended_by = reason;
+        changed = true;
+      }
+      if (changed) saveRoomHistory(h);
+    } catch (e) {}
+  }
+  /* 前回、退出しないまま終わった記録を、起動して最初に一度だけ閉じる */
+  try { closeOpenRoomHistory("interrupted"); } catch (e) {}
+
   async function joinRoomObj(room, useOwnRoom, ownerIdStr){
     room = room || {};
     var roomToken = room.token || "";
@@ -422,14 +528,24 @@
     if (roomId) {
       var jr = await httpApi2("POST", "/api/rooms/" + roomId + "/join", null, {});
       log(nowStr() + "  [JOIN] POST rooms/" + roomId + "/join -> " + jr.status);
-      if ((jr.status === 403 || jr.status === 400) && jr.body) { var jm = extractError(jr.body); if (jm) return { ok: false, status: jr.status, message: jm }; }
+      if ((jr.status === 403 || jr.status === 400) && jr.body) { var jm = joinRefusedMessage(jr.body, extractError(jr.body)); if (jm) return { ok: false, status: jr.status, error: "join_refused", message: jm }; }
     }
     var sk = await getSkywayToken(roomToken);
     if (sk.status !== 200) return { ok: false, status: sk.status, message: sk.status === 401 ? "通話サーバーへの認証に失敗しました。ログインし直してください。" : (sk.status <= 0 ? "通話サーバーに接続できませんでした。電波の良い場所でもう一度お試しください。" : (sk.status >= 500 ? "通話サーバーが混み合っています。時間を置いてからお試しください。" : "通話サーバーへの接続に失敗しました（status " + sk.status + "）。")) };
     var skToken = skywayTokenOf(sk);
     if (!skToken) return { ok: false, error: "AuthTokenが取得できませんでした" };
+    /* ★ここで先に記録を書く。名前を引きに行くのはそのあと
+       (通信の途中で端末が落ちても「入った」ことだけは必ず残す) */
+    var histSeq = appendRoomHistory(ownerIdStr, roomToken, room.description || room.title || "");
+    openRoomHistorySeq = histSeq;
+
     var speakers = room.speakers || [], listeners = room.listeners || [];
     await resolveNames(speakers.concat(listeners).map(arrUid).concat([Number(ownerIdStr) || 0]));
+    try {
+      var oUid = Number(ownerIdStr) || 0;
+      var cached = state.nameCache[oUid];
+      enrichRoomHistory(histSeq, cached ? cached[0] : "", cached ? cached[1] : "", room.description || room.title || "");
+    } catch (e) {}
     var participants = [];
     [[speakers, true], [listeners, false]].forEach(function(pair){ pair[0].forEach(function(o){ if (!o || typeof o !== "object") return; var uid = arrUid(o); participants.push({ user_id: uid, name: o.name || nameOf(uid), icon_url: iconOf(uid), is_owner: !!(o.isOwner || o.is_owner), is_mute: !!(o.isMute || o.is_mute), role: o.role || (pair[1] ? "speaker" : "listener") }); }); });
     var isOwner = useOwnRoom; participants.forEach(function(p){ if (p.is_owner && p.user_id === state.userId) isOwner = true; });
@@ -524,11 +640,14 @@
       var id = a[0]; if (!id) return { ok: false, message: "room_id不明" };
       var r = await request2("DELETE", "/api/rooms/" + id + "/leave", null, null);
       if (r.status === 404 || r.status === 405) r = await request2("POST", "/api/rooms/" + id + "/leave", null, {});
+      closeOpenRoomHistory("leave"); // 枠の記録に退出時刻を入れて閉じる
+      openRoomHistorySeq = 0;
       log(nowStr() + "  [ROOM] leave " + id + " -> " + r.status);
       try { var st = await httpApi2("GET", "/api/rooms/" + id, null, null); if (st.status === 200 && st.body) { var ro = st.body.data || st.body; var owner = Number(ro.owner_user_id || ro.owner || 0); if (owner && owner === state.userId) { await closeRoomById(id); pref("my_open_room", null); } } } catch (e) {}
       return okResult(r);
     },
     refresh_room_state: async function(a){
+      touchRoomHistory(); // 落ちたときの滞在時間の目安を残す
       var ownerStr = (!a[0] || a[0] === "null") ? String(state.userId) : String(a[0]); var roomId = a[1]; var room = null;
       if (roomId && roomId !== "null" && roomId !== "0") {
         var r1 = await http("GET", BASE2 + "/api/rooms/" + roomId, { version: "android_" + APP_VERSION, auth_token: state.token });
@@ -610,8 +729,15 @@
       if (r.status !== 200 || !r.body) return { ok: false, status: r.status };
       var d = r.body.data || r.body || {}; var chats = d.chats || []; var ui = {}; (d.user_info || []).forEach(function(u){ ui[Number(u.user_id)] = u; });
       await ensureDefines();
-      if (!Object.keys(ui).length && chats.length) { try { await resolveNames(chats.map(function(c){ return c.user_id; })); } catch (e) {} }
-      var rows = chats.map(function(c){ var uid = Number(c.user_id); var u = ui[uid] || (state.nameCache[uid] && state.nameCache[uid][0] ? { name: state.nameCache[uid][0], profile_picture_file_path: state.nameCache[uid][1] } : null); return { chat_id: c.id, target_id: uid, unread_count: Number(c.unread_count || 0), name: u ? (u.name || "user " + uid) : "user " + uid, icon_url: u ? iconUrl(u.profile_picture_file_path || "") : "", last_sent_at: c.last_sent_at || "", last_message: chatLastMessage(c) }; });
+      /* 名前は user_info にあるがアイコンだけ空、という応答があるので、その場合も取り直す
+         (入れないと一覧の丸がいつまでも頭文字のままになる) */
+      var needLookup = !Object.keys(ui).length;
+      if (!needLookup) needLookup = chats.some(function(c){ var u0 = ui[Number(c.user_id)]; return !u0 || !u0.profile_picture_file_path; });
+      if (needLookup && chats.length) { try { await resolveNames(chats.map(function(c){ return c.user_id; })); } catch (e) {} }
+      var rows = chats.map(function(c){ var uid = Number(c.user_id); var u = ui[uid] || (state.nameCache[uid] && state.nameCache[uid][0] ? { name: state.nameCache[uid][0], profile_picture_file_path: state.nameCache[uid][1] } : null);
+        /* user_info にアイコンが無いときは名前キャッシュから補う */
+        if (u && !u.profile_picture_file_path && state.nameCache[uid] && state.nameCache[uid][1]) u = { name: u.name, profile_picture_file_path: state.nameCache[uid][1] };
+        return { chat_id: c.id, target_id: uid, unread_count: Number(c.unread_count || 0), name: u ? (u.name || "user " + uid) : "user " + uid, icon_url: u ? iconUrl(u.profile_picture_file_path || "") : "", last_sent_at: c.last_sent_at || "", last_message: chatLastMessage(c) }; });
       var cache = {}; try { cache = JSON.parse(pref("chat_preview_cache") || "{}"); } catch (e) {}
       var toFetch = rows.filter(function(x){ if (x.last_message) return false; var hit = cache[x.chat_id + "@" + x.last_sent_at]; if (hit) { x.last_message = hit; return false; } return !!x.chat_id; }).slice(0, 8);
       await Promise.all(toFetch.map(async function(x){ try { var t = await chatPreviewOf(String(x.chat_id), String(x.target_id)); if (t) { x.last_message = t; cache[x.chat_id + "@" + x.last_sent_at] = t; } } catch (e) {} }));

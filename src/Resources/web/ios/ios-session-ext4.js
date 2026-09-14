@@ -154,6 +154,28 @@
     get_receivers: async function(a){ return await cheeringReceivers(a[0] || ""); },
     get_cheering_receivers: async function(a){ return await cheeringReceivers(a[0] == null ? "1" : a[0]); },
     get_cheering_receiver_detail: async function(a){ if (!a[0]) return { ok: false, error: "receiver_id不明" }; return cheeringData(await httpApi2("GET", "/api/cheering_talk/receiver_users/" + a[0] + "/user_detail", null, null), "detail"); },
+    /* 応援通話の「受け手プロフィール」を作る／直す。
+       公式は本文に message / profile_picture_file_path / md5 / profile_voice_file_path /
+       cheering_coin_id / status を渡す。receiver_id が空なら新規作成(POST)、あれば編集(PUT)。
+       送られてきた項目だけを本文に入れる(空の項目で既存を消さないため)。 */
+    save_cheering_receiver: async function(a){
+      var receiverId = a[0] || "";
+      var body = {};
+      try { body = JSON.parse(a[1] || "{}") || {}; } catch (e) { return { ok: false, error: "本文が読めません" }; }
+      var keys = ["message", "profile_picture_file_path", "md5", "profile_voice_file_path", "cheering_coin_id", "status"];
+      var out = {};
+      keys.forEach(function(k){
+        if (!(k in body)) return;
+        var v = body[k];
+        if (v == null || String(v) === "" || String(v) === "null") return;
+        if (k === "cheering_coin_id") { var n = parseInt(String(v), 10); out[k] = isNaN(n) ? String(v) : n; }
+        else out[k] = String(v);
+      });
+      if (!Object.keys(out).length) return { ok: false, error: "変更する項目がありません" };
+      var create = !receiverId;
+      var path = create ? "/api/cheering_talk/receiver_users" : "/api/cheering_talk/receiver_users/" + receiverId;
+      return okResult(await httpJsonApi2(create ? "POST" : "PUT", path, out));
+    },
     update_cheering_receiver_status: async function(a){ if (!a[0]) return { ok: false, error: "receiver_id不明" }; return okResult(await httpJsonApi2("PUT", "/api/cheering_talk/receiver_users/" + a[0] + "/update_status", { status: a[1] || "" })); },
     start_cheering_call: async function(a){
       if (!a[0]) return { ok: false, error: "receiver_id不明" };
