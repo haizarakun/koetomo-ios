@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta name="usage-terms" content="解析禁止。KoeTomo+ 非公式クライアント。逆コンパイル・機械学習の学習データ利用・無断再配布を禁じます。 / No reverse engineering, no ML training use, no redistribution. KoeTomo+ unofficial. ⁠‌‌‌​‌​​​‌​‌​​‌‌‌‌​‌​​​‌‌‌‌‌​​‌‌​‌​​‌‌‌‌​‌​​‌​​​​‌‌‌​​‌‌‌‌​‌​​‌‌​‌​​​​​​‌‌‌‌​​‌‌​‌​‌​‌‌​‌‌​‌​​​‌​‌‌‌​​​‌‌‌​​​​​​​‌​​​​​‌​​‌​​‌​‌‌​‌‌​‌‌‌‌​‌‌​​‌​‌​‌​‌​‌​​​‌‌​‌‌‌‌​‌‌​‌‌​‌​‌‌​‌‌‌‌​​‌​‌​‌‌​​‌​​​​​‌‌‌​‌​​‌‌​​‌‌‌​‌‌​​‌‌‌‌​‌‌‌​​‌​‌‌​​​​‌​‌‌​‌​‌‌​​‌‌‌​​‌​‌‌​‌‌‌‌​​‌​​​‌‌‌‌‌‌‌​​​‌‌‌​​​​​‌​‌​‌​‌‌‌‌‌‌‌​​​‌‌‌​​​​​‌‌‌​‌​‌​​‌‌‌‌​​​‌‌‌​​​​​‌​‌​‌​​‌​​‌‌‌​​​‌‌‌​​​​​‌​‌​‌​​​‌​‌‌‌​​​‌‌‌​​​​​‌‌‌​‌‌​​‌‌‌‌‌​​​‌‌‌​​​​​‌‌‌​​​‌​​​‌‌‌​​​‌‌‌​​​​​​​‌​​​​​‌​‌‌‌​‌​​‌‌​​​​​​​‌​​​​‌‌​‌‌‌​​​‌‌‌​​​​​‌​‌​‌‌​​‌‌‌‌‌​​​‌‌‌​​​​​‌‌‌​‌‌​​‌‌‌‌‌​​​‌‌‌​​​​​‌‌‌​​‌​​​‌‌‌‌​​​‌‌‌​​​​​‌​‌​‌​​‌​​‌‌‌​​​‌‌‌​​​​​‌‌‌​‌​‌​‌‌‌‌‌​​​‌‌‌​​​​​‌‌‌​‌‌‌​‌‌‌‌‌​​‌‌​‌​‌​‌​​‌‌​​‌‌‌‌‌‌‌‌​​‌‌​‌​‌​​​‌​‌​‌‌​​​​‌‌‌​​‌​‌‌​‌​‌‌​‌‌​‌​​‌‌​‌‌‌​​‌‌‌‌​‌‌‌‌‌‌‌​​‌​​‌​‌‌‌​​​‌‌‌​​​​​​‌‌​‌​‌‌‌​‌‌‌​​‌​‌‌​‌​‌‌​‌‌​‌​​‌‌​‌‌‌​​‌‌‌‌​‌‌‌‌‌‌‌​​‌​​‌​‌‌‌​​​‌‌‌​​​​​‌‌‌​​​​‌‌‌‌‌‌​​​‌‌‌​​​​​‌‌‌​‌‌‌‌​​‌‌‌​​​‌‌‌​​​​​‌​‌​‌‌‌‌‌‌‌‌‌​​‌​‌‌​​​‌​​​‌​‌​‌​​‌‌‌‌​​‌‌‌‌​​‌​‌​​‌​‌​‌​​​‌‌‌​​​‌‌‌​​​​​‌‌‌​‌‌‌​‌‌‌‌‌​​‌‌‌‌​​​​‌​​‌​‌​​​​‌‌‌‌​​‌‌​‌​​‌​‌‌​‌​‌​‌‌​‌‌‌‌​​‌​‌‌​​​​‌‌​‌​​​‌‌​‌‌‌‌​‌​​‌‌​​​​‌​‌‌​​​‌‌​‌‌‌‌​​‌​‌‌​‌‌‌​​​‌​​​​​‌‌‌‌‌​​​‌‌‌​​​​​‌​‌​​‌​​‌​‌‌‌​​‌‌‌‌​‌​​‌‌​‌​​​​​​‌‌‌‌​​​‌‌‌​​​​​​‌‌​​‌‌​​​‌‌‌​​​‌‌‌​​​​​​‌‌​‌‌‌‌‌​‌‌‌​​​‌‌‌​​​​​​‌‌​​‌‌​​‌‌‌‌​​​‌‌‌​​​​​​​‌​​​​​‌​​​‌​​​​​​​‌​‌‌‌‌​​‌​​​​​​‌​​‌‌‌​​‌‌​‌‌‌‌​​‌​​​​​​‌‌‌​​‌​​‌‌​​‌​‌​‌‌‌​‌‌​​‌‌​​‌​‌​‌‌‌​​‌​​‌‌‌​​‌‌​‌‌​​‌​‌​​‌​​​​​​‌‌​​‌​‌​‌‌​‌‌‌​​‌‌​​‌‌‌​‌‌​‌​​‌​‌‌​‌‌‌​​‌‌​​‌​‌​‌‌​​‌​‌​‌‌‌​​‌​​‌‌​‌​​‌​‌‌​‌‌‌​​‌‌​​‌‌‌​​‌​‌‌​​​​‌​​​​​​‌‌​‌‌‌​​‌‌​‌‌‌‌​​‌​​​​​​‌​​‌‌​‌​‌​​‌‌​​​​‌​​​​​​‌‌‌​‌​​​‌‌‌​​‌​​‌‌​​​​‌​‌‌​‌​​‌​‌‌​‌‌‌​​‌‌​‌​​‌​‌‌​‌‌‌​​‌‌​​‌‌‌​​‌​​​​​​‌‌‌​‌​‌​‌‌‌​​‌‌​‌‌​​‌​‌​​‌​‌‌​​​​‌​​​​​​‌‌​‌‌‌​​‌‌​‌‌‌‌​​‌​​​​​​‌‌‌​​‌​​‌‌​​‌​‌​‌‌​​‌​​​‌‌​‌​​‌​‌‌‌​​‌‌​‌‌‌​‌​​​‌‌‌​​‌​​‌‌​‌​​‌​‌‌​​​‌​​‌‌‌​‌​‌​‌‌‌​‌​​​‌‌​‌​​‌​‌‌​‌‌‌‌​‌‌​‌‌‌​​​‌​‌‌‌​​​‌​​​​​​‌​​‌​‌‌​‌‌​‌‌‌‌​‌‌​​‌​‌​‌​‌​‌​​​‌‌​‌‌‌‌​‌‌​‌‌​‌​‌‌​‌‌‌‌​​‌​‌​‌‌​​‌​​​​​​‌‌‌​‌​‌​‌‌​‌‌‌​​‌‌​‌‌‌‌​‌‌​​‌‌​​‌‌​​‌‌​​‌‌​‌​​‌​‌‌​​​‌‌​‌‌​‌​​‌​‌‌​​​​‌​‌‌​‌‌​​​​‌​‌‌‌​⁠">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:; connect-src 'self' https: wss: blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-src 'none'; form-action 'none'">
+<title>KoeTomo+</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preload" as="script" href="android-bridge.js">
+<link rel="preload" as="script" href="banlist-client.js">
+<link rel="preload" as="script" href="sched.js">
+<link rel="preload" as="script" href="roomguard.js">
+<link rel="preload" as="script" href="koemod.js">
+<link rel="preload" as="script" href="app.js">
+</head>
+<body>
+<div id="permBanner" style="display:none;">
+<span id="permBannerText"> マイクの許可が必要です</span>
+<button onclick="requestAppPerms()">許可する</button>
+<button onclick="openPermSettings()">設定を開く</button>
+<span class="pb-x" onclick="dismissPermBanner()">✕</span>
+</div>
+<div id="callLogModal" style="display:none;">
+<div class="clog-modal-head"><span>通話ログ詳細</span><span class="clog-close" onclick="closeCallLogModal()">✕</span></div>
+<div id="callLogModalBody" class="clog-modal-body"></div>
+</div>
+<div id="pinLockOverlay" style="display:none;">
+<div class="pin-emoji"></div>
+<div id="pinLockTitle">PINを入力</div>
+<div id="pinDots" class="pin-dots"></div>
+<div id="pinError" class="pin-err"></div>
+<div id="pinPad" class="pin-pad"></div>
+<button id="bioUnlockBtn" style="display:none;margin-top:6px;padding:10px 20px;border-radius:10px;border:1px solid var(--accent,#2AC1C7);background:transparent;color:var(--accent,#2AC1C7);font-size:14px;font-weight:600;cursor:pointer;"> 指紋 / 顔で解除</button>
+</div>
+<div id="loginScreen" class="login-screen" style="display:none;">
+<div class="login-bg-layer koemad">
+<div class="mad-flash"></div>
+<div class="mad-stripes"></div>
+<div class="mad-band mad-band1">KOETOMO ★ 非公式 ★ KOETOMO ★ 非公式 ★ KOETOMO ★ 非公式 ★ </div>
+<div class="mad-band mad-band3">▲▼ LOGIN ▲▼ LOGIN ▲▼ LOGIN ▲▼ LOGIN ▲▼ </div>
+<div class="mad-band mad-band2">声とも ♪ 声とも ♪ 声とも ♪ 声とも ♪ 声とも ♪ 声とも ♪ </div>
+<div class="mad-ring r1"></div>
+<div class="mad-ring r2"></div>
+<div class="mad-emoji e1">★</div>
+<div class="mad-emoji e2">♪</div>
+<div class="mad-emoji e3">☆</div>
+<div class="mad-emoji e4">◆</div>
+<div class="mad-emoji e5">✦</div>
+</div>
+<div class="login-box">
+<img src="logo.png" class="login-logo-img" alt="KoeTomo+">
+<p class="login-sub">KoeTomo+・非公式クライアント</p>
+<div id="loginError" class="login-error error-text" style="display:none;"></div>
+<div id="loginFields">
+<label>メールアドレス</label>
+<input id="loginEmail" type="text" autocomplete="username">
+<label>パスワード</label>
+<input id="loginPassword" type="password" autocomplete="current-password">
+<label class="koe-autologin-opt" style="display:flex;align-items:flex-start;gap:8px;margin:8px 0;font-size:12px;line-height:1.45;cursor:pointer;text-align:left;"><input id="koeAutoLoginChk" type="checkbox" style="margin-top:2px;flex-shrink:0;"><span>メール・パスワードをこの端末に保存し、セッションが切れたら自動で再ログインする。<br><b style="opacity:.85;">⚠ 認証情報はこの端末内にのみ保存されます。共有・貸与する端末では使わないでください。</b></span></label>
+<button id="loginBtn" class="btn-primary">ログイン</button>
+</div>
+<div id="signupFields" style="display:none;">
+<label>名前</label>
+<input id="signupName" type="text">
+<label>メールアドレス</label>
+<input id="signupEmail" type="text" autocomplete="username">
+<label>パスワード</label>
+<input id="signupPassword" type="password" autocomplete="new-password">
+<label>性別</label>
+<select id="signupSex">
+<option value="0">性別を選択</option>
+<option value="1">男性</option>
+<option value="2">女性</option>
+</select>
+<label>生年月日 (例: 19900101)</label>
+<input id="signupBirthday" type="text" placeholder="19900101">
+<button id="signupBtn" class="btn-primary">新規登録</button>
+</div>
+<div style="margin-top:14px;display:flex;align-items:center;gap:8px;">
+<div style="flex:1;height:1px;background:var(--border,#3a3f45);"></div>
+<span style="font-size:11px;color:var(--text-muted);">または</span>
+<div style="flex:1;height:1px;background:var(--border,#3a3f45);"></div>
+</div>
+<button id="xLoginBtn" class="btn-secondary" style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;">
+<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+<span>Xでログイン</span>
+</button>
+<p id="xLoginNote" style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.4;text-align:left;">
+Xで登録した声ともアカウント用です。ブラウザでXの認証画面が開きます。
+</p>
+<details class="token-login" style="margin-top:10px;">
+<summary style="cursor:pointer;font-size:12px;color:var(--text-muted);text-align:center;">LINE / Facebook のIDでログイン(上級者向け)</summary>
+<div style="margin-top:8px;text-align:left;">
+<label>LINE ID</label>
+<div style="display:flex;gap:6px;">
+<input id="lineIdInput" type="text" placeholder="line_id を貼り付け" style="flex:1;">
+<button id="lineLoginBtn" class="btn-secondary" style="width:auto;">LINE</button>
+</div>
+<label style="margin-top:8px;">Facebook ID</label>
+<div style="display:flex;gap:6px;">
+<input id="fbIdInput" type="text" placeholder="facebook_id を貼り付け" style="flex:1;">
+<button id="fbLoginBtn" class="btn-secondary" style="width:auto;">Facebook</button>
+</div>
+<p style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5;">
+LINE/FacebookのSDKは公式アプリの署名に紐づくため、このアプリからは直接認証できません。
+取得済みの <b>line_id</b> / <b>facebook_id</b> を貼り付けてログインしてください。
+</p>
+</div>
+</details>
+<details class="token-login koe-support-note" style="margin-top:12px;">
+<summary style="cursor:pointer;font-size:12px;color:var(--text-muted);text-align:center;">このアプリに広告が無い理由・koetomo を応援するには</summary>
+<div style="margin-top:8px;text-align:left;font-size:12px;line-height:1.6;color:var(--text-muted);">
+<p style="margin:0 0 6px;"><b>KoeTomo+ に広告は入れていません。</b>入れられない理由は次のとおりです。</p>
+<p style="margin:0 0 6px;">・広告ネットワーク（AdMob 等）の規約は「他社サービスに無許可で接続するアプリ」での掲載を認めていません。非公式クライアントで広告を出すと、広告を出す側もこのアプリも規約違反になります。</p>
+<p style="margin:0 0 6px;">・公式アプリの広告枠を借りることもできません。運営の広告アカウントの ID を別アプリから使うと「不正トラフィック」と判定され、<b>運営側の広告収入が止められる</b>おそれがあります。応援したい相手に損害を与えることになります。</p>
+<p style="margin:0 0 6px;">・このアプリは非営利・無償で配布しており、ライセンスでも商用利用を禁止しています。広告で収入を得ること自体が方針と矛盾します。</p>
+<p style="margin:0 0 6px;"><b>それでも koetomo（声とも）を応援したい方へ。</b>運営に収入が届く方法は、公式の仕組みを使うことです。このアプリの通話画面とマイページにある「公式オファーウォール」、および公式アプリからのコイン購入は、いずれも運営の売上になります。</p>
+<p style="margin:0;">開発者はこのアプリから一切の収益を得ていません。koetomo が続いてほしい、という気持ちで作っています。</p>
+</div>
+</details>
+<div id="authModeToggle" class="auth-toggle">アカウントをお持ちでない方は<span id="switchToSignup">新規登録</span></div><div style="margin-top:14px;text-align:center;">
+<button id="koeDbgOpenLogin" class="btn-secondary" style="width:auto;font-size:12px;padding:6px 14px;">診断ログを開く</button>
+<p style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.4;">ログインできないときの原因調査に使えます。</p>
+</div>
+
+<details class="token-login" style="margin-top:12px;" open>
+<summary style="cursor:pointer;font-size:12px;color:var(--accent,#2AC1C7);text-align:center;font-weight:600;">トークンでログイン(推奨・確実)</summary>
+<div style="margin-top:8px;text-align:left;">
+<label>セッショントークン(auth_token)</label>
+<input id="tokenLoginToken" type="text" placeholder="auth_token を貼り付け">
+<label>user_id(任意・空でOK)</label>
+<input id="tokenLoginUid" type="text" placeholder="分かれば入力(空でも自動取得します)">
+<button id="tokenLoginBtn" class="btn-primary" style="margin-top:6px;">トークンでログイン</button>
+<p style="font-size:11px;color:var(--text-muted);margin-top:6px;line-height:1.5;">
+メール/Xの通常ログインが現在サーバー側で不安定なため、こちらが確実です。
+公式アプリの通信から <b>auth_token</b> を取得して貼り付けてください。user_id は空でも自動で取得します。
+別端末で「セッショントークンを表示」から書き出したトークンも使えます。
+</p>
+</div>
+</details>
+</div>
+</div>
+<div id="mainScreen" class="main-screen" style="display:none;">
+<div class="rail rail-extra">
+<div class="rail-item active" data-view="timeline" title="タイムライン" tabindex="0">
+<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.5 6A2.5 2.5 0 0 1 7 3.5h10A2.5 2.5 0 0 1 19.5 6v12A2.5 2.5 0 0 1 17 20.5H7A2.5 2.5 0 0 1 4.5 18V6Z" opacity=".28"/><rect x="7.4" y="7.2" width="9.2" height="2.1" rx="1.05"/><rect x="7.4" y="11" width="9.2" height="2.1" rx="1.05"/><rect x="7.4" y="14.8" width="5.4" height="2.1" rx="1.05"/></svg>
+</div>
+<div class="rail-item" data-view="call" title="グループ通話" tabindex="0">
+<svg viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2.6" width="6" height="11" rx="3"/><path d="M6 11.2a6 6 0 0 0 12 0" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"/><rect x="11" y="18" width="2" height="3.4" rx="1"/><rect x="8.4" y="20.6" width="7.2" height="1.9" rx=".95"/></svg>
+</div>
+<div class="rail-item" data-view="chat" title="チャット" tabindex="0">
+<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H9l-4 3.6a.8.8 0 0 1-1.3-.6V5.5Z" opacity=".9"/><circle cx="8.5" cy="9.5" r="1.2" fill="var(--bg-content,#111)"/><circle cx="12" cy="9.5" r="1.2" fill="var(--bg-content,#111)"/><circle cx="15.5" cy="9.5" r="1.2" fill="var(--bg-content,#111)"/></svg>
+</div>
+<div class="rail-item" data-view="community" title="コミュニティ" tabindex="0">
+<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="8.5" r="3"/><circle cx="16.5" cy="9.5" r="2.4" opacity=".65"/><path d="M2.5 19a5.5 5.5 0 0 1 11 0 1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1Z"/><path d="M15 14.6a5 5 0 0 1 6.5 4.4 1 1 0 0 1-1 1H16" opacity=".65"/></svg>
+</div>
+<div class="rail-item" data-view="talk" title="トーク" tabindex="0">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h2M8 7v10M12 4v16M16 8v8M20 11h1"/></svg>
+</div>
+<div class="rail-item" data-view="cheering" title="応援通話(1対1)" tabindex="0">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.25 1L6.6 10.8Z"/></svg>
+</div>
+<div class="rail-item" data-view="notifications" title="通知" tabindex="0">
+<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5a6 6 0 0 0-6 6c0 5-2 6.5-2.6 7.2A.9.9 0 0 0 4 17h16a.9.9 0 0 0 .6-1.3C20 15 18 13.5 18 8.5a6 6 0 0 0-6-6Z"/><path d="M10 19a2 2 0 0 0 4 0Z"/></svg>
+<span class="nav-badge" id="notifBadge" style="display:none;"></span>
+</div>
+<div class="rail-divider"></div>
+<div class="rail-item" data-view="mypage" title="マイページ" tabindex="0">
+<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0 1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/></svg>
+</div>
+</div>
+<div class="sidebar">
+<div class="sidebar-header" id="sidebarTitle">タイムライン</div>
+<div class="sidebar-list" id="sidebarList"></div>
+</div>
+<div class="content">
+<div class="content-topbar" id="contentTopbar">
+<span class="brand-dot"></span><span id="topbarTitle">タイムライン</span>
+<span id="livePulse" class="live-pulse" title="今アクティブな通話・受け手の数">
+<span class="pulse-dot"></span><span id="livePulseCount">-</span>
+</span>
+<span id="latencyBadge" class="latency-badge" title="直近のAPI応答時間(タップでグラフ表示)" style="cursor:pointer;"></span>
+<span style="margin-left:auto; display:flex; align-items:center; gap:10px;">
+<span id="headerUser" class="header-user" title="プロフィールを開く"></span>
+<button id="logoutBtn" class="logout-btn" title="ログアウト" style="background:none;border:none;color:var(--text-muted);cursor:pointer;display:flex;align-items:center;"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 4v8M7.5 7a7 7 0 1 0 9 0"/></svg></button>
+</span>
+</div>
+<div id="callSpeakerBubble" style="display:none;">
+<div class="csb-av" id="csbAv"></div>
+<div class="csb-label" id="csbLabel">通話中</div>
+<div class="csb-x" onclick="event.stopPropagation(); leaveInWindowCall();">✕</div>
+</div>
+<div id="returnToCallBanner" class="return-call-banner" style="display:none;">
+<span class="rcb-main" onclick="reopenCall()"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.25 1L6.6 10.8Z"/></svg> 通話中... タップで戻る</span>
+<span id="rcbMic" class="rcb-mic" onclick="event.stopPropagation(); toggleCallMuteFromBanner();" title="ミュート切替"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="11" y="18" width="2" height="3.4" rx="1"/></svg></span>
+<span class="rcb-leave" onclick="event.stopPropagation(); leaveInWindowCall();" title="退出">✕</span>
+</div>
+<div id="pageCallReturnBanner" class="return-call-banner" style="display:none;cursor:pointer;" onclick="reopenCall()">
+<span class="rcb-main"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11 11 0 0 0 3.5.56 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.3a1 1 0 0 1 1 1 11 11 0 0 0 .56 3.5 1 1 0 0 1-.25 1L6.6 10.8Z"/></svg> 通話に戻る</span>
+</div>
+<div class="content-body" id="contentBody">
+<section id="page-timeline" class="page active">
+<div class="tl-topbar">
+<button id="tlSearchBtn" class="tl-topbar-icon" title="検索"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
+</div>
+<div class="main-feed-tabs">
+<button class="main-feed-tab timeline-feed-chip" data-feed="following">フォロー中</button>
+<button class="main-feed-tab timeline-feed-chip active" data-feed="all">オープン</button>
+</div>
+<div id="tlFilterRow" class="call-tabs" style="margin:8px 0 10px;">
+<button class="chip timeline-feed-chip" data-media="image"> 画像</button>
+<button class="chip timeline-feed-chip" data-media="voice"> 音声</button>
+<button class="chip timeline-feed-chip" data-feed="feed">話そう(通話募集)</button>
+<button class="chip timeline-feed-chip koe-regchip" data-media="explicit">⚠ 規制対象</button>
+</div>
+<div id="timelineList" class="card-list"></div>
+</section>
+<section id="page-call" class="page">
+<p class="page-desc">自分の通話ルーム(枠)を開く、または下の一覧から開いているルームに参加します。</p>
+<button id="openNewCallBtn" class="btn-primary join-own-btn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> 自分の通話を開く</button>
+<button id="koeRandomBtn" class="btn-secondary join-own-btn" style="margin-top:8px;"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h4l3 10h5"/><path d="M16 5l4 2-4 2"/><path d="M4 17h4l2-6"/><path d="M16 15l4 2-4 2"/></svg> ランダム通話（マッチング）</button>
+<div id="createRoomRow" class="create-room-row" style="display:none; flex-direction:column; gap:8px; align-items:stretch;">
+<input id="createRoomDesc" type="text" placeholder="枠名(ルームの説明)">
+<label class="check-row"><input type="checkbox" id="createRoomPublic" checked> 公開する(誰でも参加OK)</label>
+<label class="check-row"><input type="checkbox" id="createRoomComment" checked> コメント(チャット)を許可</label>
+<label class="field-label" style="margin-top:6px;">枠のサイズ</label>
+<div id="roomSizeRow" class="call-tabs" style="margin:2px 0 4px;">
+<button type="button" class="chip room-size-chip active" data-ct="1">大人数</button>
+<button type="button" class="chip room-size-chip" data-ct="2">少人数</button>
+</div>
+<div id="roomSizeDesc" class="card-sub" style="margin-bottom:4px;"></div>
+<button id="createRoomBtn" class="btn-secondary">この設定で枠を作る</button>
+</div>
+<div id="raiseHandRow" style="display:none;">
+<button id="raiseHandBtn" class="btn-secondary"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V6a1.5 1.5 0 0 1 3 0v4m0 0V4.5a1.5 1.5 0 0 1 3 0V10m0 0V6a1.5 1.5 0 0 1 3 0v6m0-2a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-5.4-3.4L4.5 13a1.6 1.6 0 0 1 2.8-1.5"/></svg> 発言する(挙手する)</button>
+</div>
+<details class="advanced-join">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1" stroke-linecap="round"/></svg> 挙手の自動処理設定</summary>
+<label class="check-row"><input type="checkbox" id="autoRaiseHandChk"> 参加したら自動で挙手する</label>
+<label class="check-row"><input type="checkbox" id="autoApproveChk"> オーナーの時、挙手を自動で許可する</label>
+<label class="check-row"><input type="checkbox" id="autoRejectChk"> オーナーの時、挙手を自動で拒否する</label>
+<button id="saveModerationBtn" class="btn-secondary">設定を保存</button>
+<div id="moderationStatus" class="empty-msg" style="padding:4px 0;"></div>
+</details>
+<div class="section-divider" style="margin-top:14px;"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg> 開いているルーム一覧(タップで参加)</div>
+<div class="call-tabs" style="margin-bottom:8px;">
+<button class="chip room-feed-chip active" data-feed="all">すべて</button>
+<button class="chip room-feed-chip" data-feed="following">フォロー中</button>
+</div>
+<div class="room-controls">
+<input id="roomSearchInput" type="text" placeholder="ルーム名・主催者で検索">
+<select id="roomSortSelect" aria-label="並び替え">
+<option value="pop">人数が多い順</option>
+<option value="few">人数が少ない順</option>
+<option value="new">開始が新しい順</option>
+<option value="old">開始が古い順（長く続いている）</option>
+</select>
+</div>
+<button id="refreshRoomsBtn" class="btn-secondary" style="margin-bottom:8px;">一覧を更新</button>
+<div id="callList" class="card-list"></div>
+</section>
+<section id="page-chat" class="page">
+<div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:8px;">
+<button id="chatEditBtn" class="btn-secondary" style="width:auto;padding:5px 14px;">編集</button>
+</div>
+<div id="chatBulkBar" style="display:none;align-items:center;gap:8px;margin-bottom:8px;">
+<span id="chatBulkCount" style="font-size:13px;opacity:.8;">0件選択中</span>
+<button id="chatBulkDeleteBtn" class="btn-danger" style="width:auto;padding:5px 14px;">削除</button>
+</div>
+<input id="chatSearchInput" type="text" placeholder="チャットを名前で絞り込み" autocomplete="off" style="width:100%;box-sizing:border-box;margin-bottom:8px;">
+<div id="chatList" class="card-list"></div>
+<button id="chatNewBtn" class="fab-btn" title="新しいチャット"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+</section>
+<section id="page-community" class="page">
+<div class="other-join-row" style="margin-bottom:10px;">
+<input id="communitySearchInput" type="text" placeholder="コミュニティを検索(空で参加中に戻す)">
+<button id="communitySearchBtn" class="btn-secondary">検索</button>
+</div>
+<div id="communityCategories" class="community-cats"></div>
+<details class="advanced-join" style="margin-bottom:10px;">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg> コミュニティを作成</summary>
+<div class="create-community-form">
+<input id="newCommunityName" type="text" placeholder="コミュニティ名">
+<textarea id="newCommunityDesc" rows="2" placeholder="説明(任意)"></textarea>
+<label class="check-row"><input type="checkbox" id="newCommunityOpen" checked> 誰でも参加できる(公開)</label>
+<button id="createCommunityBtn" class="btn-primary">作成する</button>
+</div>
+</details>
+<div class="timeline-feed-toggle">
+<button class="timeline-feed-chip community-tab-chip active" data-ctab="mine">参加中</button>
+<button class="timeline-feed-chip community-tab-chip" data-ctab="feed">投稿フィード</button>
+<button class="timeline-feed-chip community-tab-chip" data-ctab="rooms">開催中のトーク</button>
+</div>
+<div id="communityList" class="card-list"></div>
+<div id="communityFeed" class="card-list" style="display:none;"></div>
+<div id="communityAllRooms" class="card-list" style="display:none;"></div>
+</section>
+<section id="page-talk" class="page">
+<p class="page-desc" style="margin-bottom:8px;">公開されている通話の録音(トーク)です。再生・いいね・コメントができます。</p>
+<div class="feed-chips" style="margin-bottom:8px;">
+<button class="chip talk-src-chip active" data-talk-src="others">みんな</button>
+<button class="chip talk-src-chip" data-talk-src="mine">自分の録音</button>
+</div>
+<div id="talkList"></div>
+</section>
+<section id="page-cheering" class="page">
+<p class="page-desc" style="margin-bottom:8px;">1対1の「応援通話」です。受け手を選んでタップすると発信します。<b>コインを消費する有料機能</b>のため、発信前にご確認ください。</p>
+<div class="feed-chips" style="margin-bottom:8px;">
+<button class="chip cheering-kind-chip active" data-kind="recommended">おすすめ</button>
+<button class="chip cheering-kind-chip" data-kind="rankings">ランキング</button>
+<button class="chip cheering-kind-chip" data-kind="all">一覧</button>
+</div>
+<div id="rankingOptions" style="display:none;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+<select id="rankingRating" style="flex:1;min-width:120px;padding:7px;border-radius:8px;background:var(--bg-input,#1c1c1c);color:var(--text-normal,#dbdee1);border:1px solid var(--border);">
+<option value="1">かわいい声</option>
+<option value="2">きれいな声</option>
+<option value="3">面白い</option>
+<option value="4">かっこいい声</option>
+<option value="5">癒される</option>
+<option value="6">頼りになる</option>
+</select>
+<select id="rankingFilter" style="flex:1;min-width:100px;padding:7px;border-radius:8px;background:var(--bg-input,#1c1c1c);color:var(--text-normal,#dbdee1);border:1px solid var(--border);">
+<option value="1">週間</option>
+<option value="2" selected>月間</option>
+<option value="3">全期間</option>
+</select>
+</div>
+<div id="cheeringList" class="card-list"></div>
+<div class="section-divider" style="margin-top:16px;">履歴</div>
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px;">
+<button id="cheeringHistoryBtn" class="btn-secondary" style="width:auto;">通話履歴を見る</button>
+<button id="cheeringSentCoinsBtn" class="btn-secondary" style="width:auto;">送ったコイン</button>
+</div>
+<div id="cheeringHistoryList" class="card-list"></div>
+<details class="mypage-section" id="secReceiverConsole" style="margin-top:16px;">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3a4 4 0 0 1 4 4v3a4 4 0 0 1-8 0V7a4 4 0 0 1 4-4Z"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg> 受け手になる（受付管理）</summary>
+<p class="page-desc" style="margin-top:6px;">自分が「受け手」として応援通話を受け付けるための管理です。受け手IDは通常あなたのuser_id（空欄で自動）。</p>
+<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+<input id="receiverIdInput" type="text" inputmode="numeric" placeholder="受け手ID(空欄=自分)" style="width:170px;">
+<button id="receiverStatusOnBtn" class="btn-primary" style="width:auto;">受付開始</button>
+<button id="receiverStatusOffBtn" class="btn-secondary" style="width:auto;">受付停止</button>
+</div>
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+<button id="receiverReceivesBtn" class="btn-secondary" style="width:auto;">着信リクエスト</button>
+<button id="receiverStandbyBtn" class="btn-secondary" style="width:auto;">待機リクエスト</button>
+<button id="receiverCoinsBtn" class="btn-secondary" style="width:auto;">受取コイン</button>
+<button id="receiverDetailBtn" class="btn-secondary" style="width:auto;">受け手詳細</button>
+</div>
+<div class="section-divider" style="margin-top:14px;">受け手プロフィールの詳細設定</div>
+<p class="page-desc" style="margin-top:4px;white-space:normal;">応援通話の一覧で相手に見える内容です。空欄のままにした項目は変更しません。</p>
+<label class="field-label" style="margin-top:8px;">ひとこと（あいさつ文）</label>
+<textarea id="receiverMessageInput" rows="3" style="width:100%;box-sizing:border-box;" placeholder="例）ゆっくり話しましょう。夜に待機しています。"></textarea>
+<label class="field-label" style="margin-top:8px;">1回あたりのコイン</label>
+<select id="receiverCoinSelect" style="width:100%;"><option value="">変更しない</option></select>
+<label class="field-label" style="margin-top:8px;">受付の状態</label>
+<select id="receiverStatusSelect" style="width:100%;">
+<option value="">変更しない</option>
+<option value="active">受付中（待機）</option>
+<option value="inactive">受付を止める</option>
+</select>
+<label class="field-label" style="margin-top:8px;">プロフィール画像のファイル名（上級者向け・任意）</label>
+<input id="receiverPicInput" type="text" placeholder="例）images/xxxx.png" style="width:100%;box-sizing:border-box;">
+<label class="field-label" style="margin-top:8px;">プロフィール音声のファイル名（上級者向け・任意）</label>
+<input id="receiverVoiceInput" type="text" placeholder="例）voices/xxxx.m4a" style="width:100%;box-sizing:border-box;">
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+<button id="receiverProfileLoadBtn" class="btn-secondary" style="width:auto;">いまの内容を読み込む</button>
+<button id="receiverProfileSaveBtn" class="btn-primary" style="width:auto;">保存する</button>
+</div>
+<div id="receiverProfileMsg" class="card-sub" style="margin-top:6px;"></div>
+<div id="receiverConsoleList" class="card-list" style="margin-top:10px;"></div>
+</details>
+</section>
+<section id="page-notifications" class="page">
+<div class="notif-page-header">
+<div class="timeline-feed-toggle" id="notifKindChips">
+<button class="timeline-feed-chip notif-kind-chip active" data-kind="normal">通常</button>
+<button class="timeline-feed-chip notif-kind-chip" data-kind="important">重要</button>
+<button class="timeline-feed-chip notif-kind-chip" data-kind="calls">着信</button>
+<button class="timeline-feed-chip notif-kind-chip" data-kind="info">お知らせ</button>
+</div>
+<button id="notifSettingsGearBtn" class="tl-topbar-icon" title="通知の設定"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
+</div>
+<div id="notificationsList"></div>
+</section>
+<section id="page-mypage" class="page">
+<div class="profile-card my-hero-card">
+<div class="my-hero">
+<img id="myHeaderImg" class="my-header" style="display:none;" onerror="this.style.display='none'">
+<div class="my-hero-shade"></div>
+<div class="my-hero-top">
+<div class="my-hero-title"><span id="profileNameDisplay" class="card-name my-hero-name"></span><span id="profileAge" class="my-hero-age"></span></div>
+<button id="mypageMenuBtn" class="my-header-menu-btn" title="設定"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+</div>
+<div class="my-hero-avatar-wrap">
+<span id="profileAvatar" class="my-hero-avatar"></span>
+</div>
+</div>
+<div class="my-hero-body">
+<div class="card-sub" style="text-align:center;">user_id: <span id="profileUserId"></span></div>
+<div class="profile-header-icons my-hero-actions">
+<button id="profileEditPillBtn" class="pv-pill-btn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> 編集</button>
+<button id="profileQrPillBtn" class="pv-pill-btn" title="プロフィールリンクを共有"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07l-1.41 1.41"/><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07l1.41-1.41"/></svg></button>
+</div>
+<p id="profileCommentDisplay" class="profile-view-comment"></p>
+<div class="profile-follow-stats" style="display:flex;gap:18px;margin-top:6px;justify-content:center;">
+<span id="profileFolloweeStat" class="pv-stat-click" style="cursor:pointer;text-align:center;"><b id="profileFolloweeCount" style="display:block;font-size:16px;">0</b><span style="font-size:12px;opacity:.75;">フォロー中</span></span>
+<span id="profileFollowerStat" class="pv-stat-click" style="cursor:pointer;text-align:center;"><b id="profileFollowerCount" style="display:block;font-size:16px;">0</b><span style="font-size:12px;opacity:.75;">フォロワー</span></span><span id="profileFriendStat" class="pv-stat-click" style="cursor:pointer;text-align:center;"><b id="profileFriendCount" style="display:block;font-size:16px;">0</b><span style="font-size:12px;opacity:.75;">友達</span></span>
+</div>
+<div id="profileBalance" class="card-sub" style="display:none;margin-top:3px;font-weight:600;"></div>
+<div id="myBadges" class="badge-row"></div>
+</div>
+<div class="profile-tabs">
+<button class="profile-tab active" data-ptab="posts"><span>全ての投稿</span></button>
+<button class="profile-tab" data-ptab="album"><span>アルバム</span></button>
+<button class="profile-tab" data-ptab="bookmarks"><span>ブックマーク</span></button>
+</div>
+</div>
+<div id="profileTabPosts" class="card-list" style="margin-top:2px;"></div>
+<div id="profileTabAlbum" class="album-grid" style="margin-top:2px;display:none;"></div>
+<div id="profileTabBookmarks" class="card-list" style="margin-top:2px;display:none;"><div id="bookmarksList"></div></div>
+<div id="mypageSettingsPanel" class="mypage-settings-panel">
+<div class="mypage-settings-header"><button id="mypageSettingsBack" class="modal-close">←</button><span style="font-weight:700;">設定</span></div>
+
+<details class="mypage-section" id="profileEditSection" style="margin-top:8px;">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> プロフィールを編集・画像・トークン</summary>
+<div class="theme-switch-row" style="margin:10px 0;">
+<button id="uploadProfileImageBtn" class="theme-btn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 17l5-4 4 3 3-2 4 3" stroke-linecap="round" stroke-linejoin="round"/></svg> プロフィール画像を変更</button>
+<button id="uploadHeaderImageBtn" class="theme-btn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.4"/><path d="M3 16l5-5 4 4M13 15l3-3 5 5" stroke-linecap="round" stroke-linejoin="round"/></svg> ヘッダー画像を変更</button>
+<button id="changeTimelineBgBtn" class="theme-btn"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.9 2-2 0-.5-.2-.9-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1.1.9-2 2-2h2.3A3.7 3.7 0 0 0 21 11c0-4.4-4-8-9-8Z"/><circle cx="7.5" cy="10.5" r="1.2"/><circle cx="12" cy="7.5" r="1.2"/><circle cx="16.5" cy="10.5" r="1.2"/></svg> タイムライン背景色を変更</button>
+<input id="timelineBgColorInput" type="color" value="#1a1d24" style="position:absolute;width:0;height:0;opacity:0;pointer-events:none;" aria-hidden="true">
+<button id="resetTimelineBgBtn" class="theme-btn" style="display:none;"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg> タイムライン背景色をリセット</button>
+</div>
+<div id="profileImageStatus" class="empty-msg" style="padding:2px 0;"></div>
+<label class="field-label">名前</label>
+<input id="profileNameInput" type="text" placeholder="名前">
+<label class="field-label">コメント</label>
+<textarea id="profileCommentInput" rows="3" placeholder="自己紹介コメント(改行OK)"></textarea>
+<div id="profileBirthdaySetRow" style="display:none;align-items:center;gap:8px;margin-top:4px;">
+<span class="card-sub" style="opacity:.85;">誕生日: 設定済み</span>
+<button type="button" id="profileBirthdayChangeBtn" class="btn-secondary" style="width:auto;padding:3px 10px;font-size:12px;">変更する</button>
+</div>
+<div id="profileBirthdayFieldWrap">
+<label class="field-label">誕生日(YYYYMMDD形式。例: 19900101。未設定の場合は初回のみ入力必須)</label>
+<input id="profileBirthdayInput" type="text" placeholder="例: 19900101">
+</div>
+<button id="profileSaveBtn" class="btn-primary">プロフィールを保存</button>
+
+<details class="mypage-section" style="margin-top:12px;">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="8" cy="8" r="4.5"/><path d="M11 11l8 8M16 16l2-2M18.5 18.5l1.5-1.5" stroke-linecap="round"/></svg> セッショントークン(別端末共有用)</summary>
+<p class="page-desc">別端末で「トークンでログイン」に貼り付けると、ログインを共有できます(新規ログインを発生させないので互いに切れません)。</p>
+<button id="showTokenBtn" class="btn-secondary">トークンを表示</button>
+<textarea id="tokenExportArea" readonly style="width:100%;margin-top:8px;height:70px;display:none;box-sizing:border-box;"></textarea>
+</details>
+</details>
+<div id="profileStatus" class="empty-msg" style="padding:6px 0;"></div>
+<h3 class="settings-group-title"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H9l-4 3.6a.8.8 0 0 1-1.3-.6V5.5Z"/></svg> 声とも設定(アカウント)</h3>
+<details class="mypage-section koe-cat">
+<summary style="font-weight:700;"> 投稿・フォロー・つながり</summary>
+<div class="koe-cat-body" style="padding-left:2px;">
+<details class="mypage-section" id="blockedSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8" stroke-linecap="round"/></svg> ブロックしたユーザー</summary>
+<div id="blockedList" style="margin-top:8px;"></div>
+</details>
+</div>
+</details>
+<details class="mypage-section koe-cat">
+<summary style="font-weight:700;"> 通話・履歴・録音</summary>
+<div class="koe-cat-body" style="padding-left:2px;">
+<details class="mypage-section" id="callLogSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5" stroke-linecap="round"/><circle cx="17" cy="14" r="1.2" fill="currentColor" stroke="none"/></svg> 通話ログ(参加者・発言時間・記録)</summary>
+<p class="page-desc" style="margin-top:6px;">参加したグループ通話の参加者・最多発言者・滞在時間・昇降格ログを記録します(この端末に保存)。</p>
+<div id="callLogList" class="card-list"></div>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="7" width="4" height="13" rx="1"/><rect x="16" y="4" width="4" height="16" rx="1"/></svg> 活動ダッシュボード</summary>
+<p class="page-desc">枠参加履歴を可視化した「草」です。色が濃いほどその日たくさん通話に参加しています。</p>
+<div class="heatmap-wrap">
+<div id="heatmapGrid" class="heatmap-grid"></div>
+</div>
+<div id="heatmapTotal" class="card-sub" style="text-align:center; margin-top:4px;"></div>
+<div id="heatmapStats" class="heatmap-stats"></div>
+</details>
+<details class="mypage-section" id="koeDiscoverSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg> ユーザーを探す</summary>
+<div class="talk-src-row" style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;">
+<button type="button" class="theme-btn koe-disc-chip active" data-disc="hima" style="width:auto;">ひま</button>
+<button type="button" class="theme-btn koe-disc-chip" data-disc="recommended" style="width:auto;">おすすめ</button>
+<button type="button" class="theme-btn koe-disc-chip" data-disc="birthday" style="width:auto;">今日誕生日</button>
+<button type="button" class="theme-btn koe-disc-chip" data-disc="requests" style="width:auto;">フォロー申請</button>
+</div>
+<div id="koeDiscoverList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="koeEnqueteSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5h6M5 8h14v12H5zM9 12h6M9 16h4"/></svg> 運営アンケート</summary>
+<p class="page-desc">公式が配信しているアンケートに回答できます。</p>
+<div id="koeEnqueteList" class="card-list"></div>
+<div id="koeEnqueteForm" style="display:none;margin-top:8px;"></div>
+</details>
+<details class="mypage-section" id="koeStorageSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/></svg> キャッシュ / 保存データ</summary>
+<p class="page-desc" style="white-space:normal;">キャッシュとは、表示を速くするために端末へ一時的に置いているデータ（画像・アイコン・タイムラインの控えなど）です。KoeTomo+ は<b>できるだけキャッシュを使わない設定</b>で動いていて、上限（画像など約16MB）を超えた分は自動で捨てています。それでも気になるときは、下のボタンでいつでも全部消せます。</p>
+<p class="page-desc" style="white-space:normal;opacity:.85;"><b>消えるもの</b>：画像・アイコンの一時ファイル、タイムラインの表示用の控え、既読・いいねの記録。<br><b>消えないもの</b>：ログイン情報、保存したアカウント、フォント・テーマなどの設定、下書き、BANリストの設定。<br>削除しても失われるデータはありません。次の表示が一度だけ少し遅くなるだけです。</p>
+<div id="koeStorageBox"></div>
+</details>
+<details class="mypage-section" id="koeLimitSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 制限にかかった記録</summary>
+<p class="page-desc">投稿・枠作成などがサーバー側の制限で弾かれたとき、その時刻・前回成功からの秒数・サーバーの文言を記録します（この端末内だけ）。公式アプリにもアプリ内のクールタイムは無く、制限はサーバー判定のみです。</p>
+<div id="koeLimitLog" class="card-list"></div>
+</details>
+
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5M5 20h14"/></svg> 保存(ダウンロード)</summary>
+<p class="page-desc" style="white-space:normal;">保存ボタンを押したときに<b>形式をきくかどうか</b>と、<b>保存先フォルダ</b>をここで決められます。</p>
+
+<label class="field-label">保存先フォルダ</label>
+<div style="display:flex;flex-direction:column;gap:6px;">
+<button type="button" class="btn-secondary koe-folder-opt" data-folder="std">KoeTomo フォルダ（おすすめ・従来どおり）</button>
+<button type="button" class="btn-secondary koe-folder-opt" data-folder="app">ダウンロード内の KoeTomo 専用フォルダ</button>
+<button type="button" class="btn-secondary koe-folder-opt" data-folder="dl">ダウンロードフォルダの直下</button>
+</div>
+<p class="card-sub" id="koeFolderDesc" style="white-space:normal;margin:6px 2px 0;"></p>
+<p class="page-desc" style="white-space:normal;margin-top:4px;">・<b>KoeTomo フォルダ（おすすめ）</b>… 画像は 画像/KoeTomo、音声は 音楽/KoeTomo。ギャラリーや音楽アプリの一覧にそのまま出るので、いちばん見つけやすいやり方です。<br>・<b>ダウンロード内の KoeTomo 専用フォルダ</b>… ダウンロードの中に KoeTomo フォルダを作り、音声は Audio、画像は Images へ自動で振り分けます。1か所にまとめたい人向け。<br>・<b>ダウンロード直下</b>… 他のアプリと同じ場所にそのまま置きます。</p>
+
+<label class="field-label" style="margin-top:12px;">保存するときに形式をきく</label>
+<label class="check-row"><input type="checkbox" id="dlAskAudioChk"> 音声：毎回きく</label>
+<label class="check-row"><input type="checkbox" id="dlAskImgChk"> 画像：毎回きく</label>
+<p class="page-desc" style="white-space:normal;margin-top:4px;">オフにすると、下で選んだ形式ですぐ保存します。オフのままでも保存ボタンを<b>長押し</b>すればその場で形式を選べます。</p>
+
+<label class="field-label" style="margin-top:12px;">きかないときの音声の形式</label>
+<select id="dlFmtAudioSel">
+<option value="original">元の形式のまま(速い・おすすめ)</option>
+<option value="mp3">MP3 (128kbps)</option>
+<option value="mp3hq">MP3 (320kbps・高音質)</option>
+<option value="wav">WAV (無圧縮)</option>
+</select>
+<label class="field-label" style="margin-top:8px;">きかないときの画像の形式</label>
+<select id="dlFmtImgSel">
+<option value="original">元の形式のまま(速い・おすすめ)</option>
+<option value="jpg">JPEG</option>
+<option value="png">PNG</option>
+<option value="webp">WebP</option>
+</select>
+<p class="page-desc" style="white-space:normal;margin-top:8px;">保存が終わると、保存先つきの通知が出ます。</p>
+</details>
+<details class="mypage-section" id="koeActSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> フォロー中の活動時間帯</summary>
+<p class="page-desc">フォロー中の人の「最終オンライン」から、何時ごろオンラインが多いかを集計します（この端末内で時間帯ごとの件数だけを保存。誰がいつ、は記録しません）。<br><b>初期状態はオフ</b>で、ログインしたときに集計するかどうかを選べます。ここでいつでも切り替えられます。</p>
+<label class="check-row"><input type="checkbox" id="koeActOnChk"> この端末で集計する</label>
+<div style="display:flex;gap:8px;align-items:center;margin:6px 0;"><button type="button" class="theme-btn" id="koeActCollectBtn" style="width:auto;">いま集計</button><button type="button" class="theme-btn" id="koeActClearBtn" style="width:auto;opacity:.7;">リセット</button></div>
+<div id="koeActHoursBox"></div>
+</details>
+<details class="mypage-section" id="koeDeletedSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg> 削除された投稿</summary>
+<p class="page-desc">一度表示した投稿があとで削除されていた場合、表示したときの内容をこの端末に残します（投稿を開いたときに削除を判定）。</p>
+<div style="display:flex;gap:8px;margin:6px 0;"><button type="button" class="theme-btn" id="koeDeletedClearBtn" style="width:auto;opacity:.7;">記録を消す</button></div>
+<div id="koeDeletedPostsBox" class="card-list"></div>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg> 枠参加履歴</summary>
+<button id="refreshHistoryBtn" class="btn-secondary">最新の状態に更新</button>
+<div id="historyList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secRoomSettings">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg> 枠のデフォルト設定</summary>
+<div id="roomSettingsBox" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secRecording">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none"/></svg> 通話録音・同意</summary>
+<p class="page-desc" style="margin-top:6px;">通話録音への同意状況の確認と、同意の送信ができます。</p>
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+<button id="recAgreementsBtn" class="btn-secondary" style="width:auto;">同意状況を確認</button>
+<button id="recAgreeBtn" class="btn-primary" style="width:auto;">録音に同意する</button>
+</div>
+<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+<input id="recCheckUidsInput" type="text" placeholder="user_id（カンマ区切り）" style="flex:1; min-width:160px;">
+<button id="recCheckBtn" class="btn-secondary" style="width:auto;">録音禁止か確認</button>
+</div>
+<div id="recordingBox" class="card-list" style="margin-top:10px;"></div>
+</details>
+<details class="mypage-section" id="secTrialListenings">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 0 1 18 0"/><rect x="2" y="12" width="5" height="7" rx="1.5"/><rect x="17" y="12" width="5" height="7" rx="1.5"/></svg> お試し視聴</summary>
+<div id="trialListeningsList" class="card-list"></div>
+</details>
+</div>
+</details>
+<details class="mypage-section koe-cat">
+<summary style="font-weight:700;"> コイン・課金・アイテム</summary>
+<div class="koe-cat-body" style="padding-left:2px;">
+<details class="mypage-section" id="giftSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M20 8h-2.2a3 3 0 0 0-4.8-3.4A3 3 0 0 0 6.2 8H4a1 1 0 0 0-1 1v3h18V9a1 1 0 0 0-1-1ZM4 13v6a1 1 0 0 0 1 1h6v-7H4Zm9 7h6a1 1 0 0 0 1-1v-6h-7v7Z"/></svg> 受け取ったギフト</summary>
+<div id="giftHistoryBody" style="margin-top:8px;"></div>
+</details>
+<details class="mypage-section" id="walletSection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h4a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3h4" fill="none" stroke="var(--bg-sidebar,#17171a)" stroke-width="1.6" stroke-linecap="round"/></svg> コイン・ポイント履歴</summary>
+<button id="pointExchangeBtn" class="btn-secondary" style="margin-top:8px;">ポイントを交換する(公式ページ)</button>
+<button id="officialOfferWallBtn" class="btn-primary" style="margin-top:8px;">無料でコインを貯める（公式・提携広告）</button>
+<p class="page-desc" style="margin-top:6px;white-space:normal;">公式の提携広告（オファーウォール）です。広告の視聴やサービス登録でコインがもらえ、その報酬は<b>公式（koetomo）</b>に支払われます。</p>
+<div class="field-label" style="margin-top:12px;">コイン履歴</div>
+<div id="coinHistoryList" class="card-list"></div>
+<div class="field-label" style="margin-top:12px;">ポイント履歴</div>
+<div id="pointHistoryList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secWallet">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2" stroke-linecap="round"/></svg> ポイント交換</summary>
+<p class="page-desc" style="margin-top:6px;">所持ポイントをコイン等に交換します。まず交換したいポイント数を入力して見積もり、内容を確認してから実行してください。</p>
+<div style="display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap;">
+<input id="pointExchangeInput" type="number" inputmode="numeric" placeholder="ポイント数" style="width:140px;">
+<button id="pointEstimateBtn" class="btn-secondary" style="width:auto;">見積もり</button>
+<button id="pointExecuteBtn" class="btn-primary" style="width:auto;" disabled>交換を実行</button>
+</div>
+<div id="pointExchangeResult" class="card-sub" style="margin-top:8px; white-space:normal;"></div>
+</details>
+<details class="mypage-section" id="secOwnedItems">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8l8-4 8 4-8 4-8-4Z"/><path d="M4 8v8l8 4 8-4V8" stroke-linejoin="round"/></svg> 所持アイテム</summary>
+<div id="ownedItemsList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secDecoration">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5 5.5.8-4 3.9.9 5.5L12 16.5 7.1 18.2l.9-5.5-4-3.9L9.5 8 12 3Z" stroke-linejoin="round"/></svg> 装飾アイテム</summary>
+<p class="page-desc" style="margin-top:6px;">プロフィール等を彩る装飾アイテムです。購入するとコインを消費します。</p>
+<button id="mypageDecoBtn" class="btn-secondary" style="width:auto; margin-bottom:8px;">現在のマイページ装飾を表示</button>
+<div id="decorationItemsList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secSubscriptions">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5.5Z"/><path d="M8 8h8M8 12h8M8 16h5" stroke-linecap="round"/></svg> 購読・サブスク</summary>
+<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px; margin-top:6px;">
+<button id="subsCurrentBtn" class="btn-secondary" style="width:auto;">現在の購読</button>
+<button id="subsHistoryBtn" class="btn-secondary" style="width:auto;">購読履歴</button>
+<button id="subsIntroBtn" class="btn-secondary" style="width:auto;">導入スケジュール</button>
+</div>
+<div id="subscriptionsList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secItemPacks">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8Z" stroke-linejoin="round"/><path d="M3 8l9 5 9-5M12 13v8"/></svg> ギフト・アイテムパック</summary>
+<p class="page-desc" style="margin-top:6px;">投げ銭などで使えるアイテム一覧です。</p>
+<div id="itemPacksList" class="card-list"></div>
+</details>
+</div>
+</details>
+<details class="mypage-section koe-cat">
+<summary style="font-weight:700;"> プロフィール表示（バッジ・ボイス）</summary>
+<div class="koe-cat-body" style="padding-left:2px;">
+<details class="mypage-section" id="secBadges">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="9" r="5"/><path d="M8.5 13.5L7 21l5-3 5 3-1.5-7.5" stroke-linejoin="round"/></svg> 表示バッジ</summary>
+<p class="page-desc" style="margin-top:6px;">プロフィールに表示するバッジを選びます。</p>
+<div id="displayBadgesList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secVoiceProfiles">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v18M8 7v10M4 10v4M16 6v12M20 9v6"/></svg> ボイスプロフィール</summary>
+<div id="voiceProfilesList" class="card-list"></div>
+</details>
+</div>
+</details>
+<details class="mypage-section koe-cat">
+<summary style="font-weight:700;"> コミュニティ・イベント</summary>
+<div class="koe-cat-body" style="padding-left:2px;">
+<details class="mypage-section" id="secCommunityBookmarks">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z" stroke-linejoin="round"/></svg> 保存したコミュニティ</summary>
+<div id="communityBookmarksList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secCampaigns">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h13l3 3-3 3H4zM4 12v8"/></svg> キャンペーン</summary>
+<p class="page-desc" style="margin-top:6px;">開催中のキャンペーンです。参加・進捗確認・既読ができます。</p>
+<div id="campaignsList" class="card-list"></div>
+</details>
+<details class="mypage-section" id="secEnquete">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h4" stroke-linecap="round"/></svg> アンケート</summary>
+<div id="enquetesList" class="card-list"></div>
+</details>
+</div>
+</details>
+<details class="mypage-section koe-cat">
+<summary style="font-weight:700;"> アカウント・その他</summary>
+<div class="koe-cat-body" style="padding-left:2px;">
+<details class="mypage-section" id="privacySection">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v6c0 4.4-3 7.4-7 9-4-1.6-7-4.6-7-9V6l7-3Z"/><path d="M9.5 12l1.8 1.8L15 10" stroke-linecap="round" stroke-linejoin="round"/></svg> プライバシー設定</summary>
+<p class="page-desc" style="margin-top:6px;">公開範囲やマッチングの受け取りを設定できます。変更は即時反映されます。</p>
+<div id="privacySettingsBody" style="margin-top:4px;"></div>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke-linecap="round"/></svg> パスワード変更</summary>
+<label class="field-label" style="margin-top:8px;">現在のパスワード</label>
+<input id="pwCurrent" type="password" autocomplete="current-password">
+<label class="field-label">新しいパスワード</label>
+<input id="pwNew" type="password" autocomplete="new-password">
+<label class="field-label">新しいパスワード(確認)</label>
+<input id="pwConfirm" type="password" autocomplete="new-password">
+<button id="changePasswordBtn" class="btn-primary" style="margin-top:10px;">パスワードを変更</button>
+<div id="pwStatus" class="empty-msg" style="padding:6px 0;"></div>
+</details>
+<details class="mypage-section">
+<summary style="color:var(--danger,#e66);"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z" stroke-linecap="round" stroke-linejoin="round"/></svg> アカウント退会</summary>
+<p class="page-desc" style="margin-top:6px;color:var(--danger,#e66);">退会するとアカウント・投稿・フォロー等がすべて失われ、取り消せません。</p>
+<label class="field-label">退会理由(任意)</label>
+<input id="withdrawReason" type="text" placeholder="任意">
+<button id="withdrawBtn" class="btn-danger" style="margin-top:10px;">アカウントを退会する</button>
+</details>
+<details class="mypage-section" id="secBulkChat">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 5.5A1.5 1.5 0 0 1 5.5 4h13A1.5 1.5 0 0 1 20 5.5v8A1.5 1.5 0 0 1 18.5 15H9l-4 3.5V5.5Z"/><path d="M9 9l6 4M15 9l-6 4"/></svg> チャット一括削除</summary>
+<p class="page-desc" style="margin-top:6px;">チャットIDをカンマ区切りで入力して一括削除します。取り消せないので注意してください。</p>
+<div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top:8px;">
+<input id="bulkChatIdsInput" type="text" placeholder="chat_id, chat_id, ..." style="flex:1; min-width:180px;">
+<button id="bulkChatDeleteBtn" class="btn-danger" style="width:auto;">一括削除</button>
+</div>
+</details>
+</div>
+</details>
+<h3 class="settings-group-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1" stroke-linecap="round"/></svg> クライアント設定(このアプリ)</h3>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0 1 1 0 0 1-1 1H5a1 1 0 0 1-1-1Z"/></svg> アカウント切替</summary>
+<div id="accountsList" class="accounts-list" style="margin-top:8px;"></div>
+<button id="addAccountBtn" class="btn-secondary" style="margin-top:8px;">＋ 別のアカウントでログイン</button>
+<label class="field-label" style="margin-top:12px;">ログインが切れた時の動作</label>
+<select id="logoutActionSelect">
+<option value="select">保存アカウントから選び直す</option>
+<option value="login">ログイン画面へ進む</option>
+</select>
+<p class="page-desc" style="margin-top:6px;">他の端末でログインすると、この端末は自動ログアウトされます(乗っ取り対策)。切れた時の挙動を選べます。</p>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a9 9 0 1 0 0 18c1 0 1.5-.8 1.5-1.5 0-1.3-1-1.5-1-2.5 0-.8.7-1.5 1.5-1.5H16a5 5 0 0 0 5-5c0-4.4-4-7-9-7Z"/><circle cx="7.5" cy="11" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16" cy="11" r="1"/></svg> テーマ・表示設定</summary>
+<div id="accentRow" class="accent-row" style="margin-top:10px;">
+<button class="accent-swatch active" data-color="#2AC1C7" style="background:#2AC1C7;" title="ティール"></button>
+<button class="accent-swatch" data-color="#268aff" style="background:#268aff;" title="ブルー"></button>
+<button class="accent-swatch" data-color="#F2568C" style="background:#F2568C;" title="ピンク"></button>
+<button class="accent-swatch" data-color="#22C55E" style="background:#22C55E;" title="グリーン"></button>
+<button class="accent-swatch" data-color="#F5872A" style="background:#F5872A;" title="オレンジ"></button>
+<button class="accent-swatch" data-color="#8B5CF6" style="background:#8B5CF6;" title="パープル"></button>
+<button class="accent-swatch" data-color="#F5C542" style="background:#F5C542;" title="イエロー"></button>
+<button class="accent-swatch" data-color="#EF4444" style="background:#EF4444;" title="レッド"></button>
+<div class="accent-custom-wrap">
+<input id="accentCustomInput" type="color" value="#2AC1C7" title="アクセント色(自由)">
+<span>アクセント</span>
+</div>
+<div class="accent-custom-wrap">
+<input id="bgCustomInput" type="color" value="#111111" title="背景色(自由)">
+<span>背景</span>
+</div>
+<button id="bgResetBtn" class="theme-btn" style="width:auto;">背景リセット</button>
+</div>
+<label class="check-row" style="margin-top:12px;"><input type="checkbox" id="hapticChk" checked> 触覚フィードバック(振動)</label>
+<label class="field-label" style="margin-top:12px;">プリセット配色</label>
+<div id="themePresets" class="theme-presets"></div>
+<label class="field-label" style="margin-top:8px;">文字サイズ</label>
+<input id="fontSizeRange" type="range" min="90" max="120" step="5" value="100" style="width:100%;">
+<div id="fontSizeLabel" class="card-sub" style="text-align:center;">100%</div>
+<label class="field-label" style="margin-top:10px;">フォント</label>
+<div class="ios-search"><input id="fontSearch" type="search" placeholder="フォントを検索" autocomplete="off"></div>
+<div id="fontList" class="ios-list"></div>
+<details class="ios-more">
+<summary>自分のフォントを使う</summary>
+<input id="fontCustomInput" type="text" placeholder="Google フォント名（例: Klee One）">
+<input id="fontFileInput" type="file" accept=".ttf,.otf,.woff,.woff2,font/*">
+<p class="ios-note">Web フォントは初回だけ通信で読み込みます。</p>
+</details>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1" stroke-linecap="round"/></svg> 詳細設定</summary>
+<div class="settings-subhead"> サウンド</div>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="soundChk" checked> 効果音</label>
+<label class="field-label" style="margin-top:6px;">効果音の音量</label>
+<input id="soundVolRange" type="range" min="0" max="100" step="10" value="50" style="width:100%;">
+<div id="soundVolLabel" class="card-sub" style="text-align:center;">50%</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;"><button id="soundTestBtn" class="theme-btn" style="width:auto;">効果音をテスト</button><button id="soundTestAllBtn" class="theme-btn" style="width:auto;">全種類を鳴らす</button></div>
+<hr style="border:none;border-top:1px solid var(--border,#2a2d34);margin:12px 0;">
+<div class="settings-subhead"> 表示</div>
+<label class="check-row"><input type="checkbox" id="animChk" checked> アニメーション</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="relTimeChk" checked> 時刻を「◯分前」で表示</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="newPostChk" checked> 新着投稿を自動チェック</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="dataSaverChk"> データ節約(画像を自動読み込みしない)</label>
+<label class="field-label" style="margin-top:10px;">サウンドテーマ</label>
+<select id="soundThemeSelect">
+<option value="default">標準</option>
+<option value="pure">ピュア(正弦波)</option>
+<option value="soft">ソフト</option>
+<option value="retro">レトロ(8bit)</option>
+</select>
+<label class="field-label" style="margin-top:10px;">通知音</label>
+<select id="notifSoundSelect">
+<option value="chime">チャイム</option>
+<option value="ding">ディン</option>
+<option value="bell">ベル</option>
+<option value="notify">通知(標準)</option>
+<option value="msg_in">メッセージ</option>
+<option value="coin">コイン</option>
+<option value="sparkle">キラキラ</option>
+<option value="alert">アラート</option>
+<option value="pop">ポップ</option>
+<option value="none">鳴らさない</option>
+</select>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="newNotifPopupChk"> 新着通知をアプリ内のポップでも知らせる</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="bgNotifyChk"> アプリを閉じている間もAndroidの通知で知らせる</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="autoDelRegChk"> 自分の投稿が規制対象になったら自動で削除して通知する</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="voiceContinuousChk"> 音声投稿を連続再生する</label>
+<div class="settings-subhead"> 枠の防御（荒らし・なりすまし対策）</div>
+<p class="card-sub" style="margin:4px 0 8px;">判定はこの端末の中で行います。キック・リスナーに戻すは、自分が枠を開いた人のときだけ実行します。</p>
+<div class="guard-group">
+<div class="guard-group-title">見つけたときの動き</div>
+<div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">コメントで見つけたら</span><select data-guard="spamAction" style="width:auto;"><option value="none">そのまま</option><option value="listener">リスナーに戻す</option><option value="kick">キックする</option></select></div><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">音が大きい人は</span><select data-guard="loudAction" style="width:auto;"><option value="none">そのまま</option><option value="listener">リスナーに戻す</option><option value="kick">キックする</option></select></div><label class="check-row" style="margin-top:8px;"><input type="checkbox" data-guard="escalate"> 繰り返す人は対処を強める（隠す→リスナー→キック）</label><p class="callv2-note" style="margin:4px 0 0 24px;">入れていると、1回目は自分の端末の中だけ（非表示・音量down）で様子を見ます。取り違えでいきなりキックしないための設定です。切ると1回目から上の対処を行います。</p><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="notifyChat"> 見つけたら枠のコメント欄に知らせる（自分の枠のみ）</label><label class="field-label" style="margin-top:10px;">他人の枠では（キックできないため）</label>
+<select data-guard="guestAction" style="width:100%;"><option value="volume">音量を下げる</option><option value="silence">声を受け取らない</option><option value="block">声を受け取らない＋ブロック</option></select>
+</div>
+<details class="guard-group">
+<summary class="guard-group-title">何を見つけるか</summary>
+<label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="spamEnabled"> コメントの連投・繰り返し</label><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">10秒に</span><select data-guard="spamMaxPer10s" style="width:auto;"><option value="4">4件</option><option value="6">6件</option><option value="8">8件</option><option value="12">12件</option></select></div><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">同じ文を</span><select data-guard="spamSameText" style="width:auto;"><option value="2">2回</option><option value="3">3回</option><option value="4">4回</option><option value="6">6回</option></select></div><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">長文とみなす</span><select data-guard="longComment" style="width:auto;"><option value="0">見ない</option><option value="200">200文字</option><option value="300">300文字</option><option value="500">500文字</option></select></div><label class="field-label" style="margin-top:8px;">NGワード（改行か読点で区切る）</label>
+<textarea data-guard="ngWords" rows="2" style="width:100%;box-sizing:border-box;" placeholder="例）宣伝URL、荒らし文句"></textarea>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" data-guard="loudEnabled"> 大きすぎる音</label><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">感度</span><input type="range" data-guard="loudLevel" min="1" max="10" step="1" style="flex:2;"></div><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">この秒数つづいたら</span><select data-guard="loudSeconds" style="width:auto;"><option value="1">1秒</option><option value="2">2秒</option><option value="4">4秒</option></select><select data-guard="loudVolume" style="width:auto;"><option value="0">0%</option><option value="10">10%</option><option value="20">20%</option><option value="40">40%</option></select><span class="card-sub">に</span></div><label class="check-row" style="margin-top:8px;"><input type="checkbox" data-guard="joinFlood"> 入り直しの繰り返し</label><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">3分に</span><select data-guard="joinFloodCount" style="width:auto;"><option value="3">3回</option><option value="4">4回</option><option value="6">6回</option><option value="8">8回</option></select></div><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="handFlood"> 挙手の連打</label><div style="display:flex;gap:8px;align-items:center;margin:4px 0 0 24px;"><span class="card-sub" style="flex:1;">1分に</span><select data-guard="handFloodCount" style="width:auto;"><option value="3">3回</option><option value="4">4回</option><option value="6">6回</option><option value="8">8回</option></select></div></details>
+<details class="guard-group">
+<summary class="guard-group-title">なりすまし・乗っ取りを防ぐ</summary>
+<label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="revertUnapproved"> 承認していない発言者は元に戻す（自分の枠）</label><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="protectRoomSettings"> 枠名・コメント欄を勝手に変えられたら戻す</label><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="strangerComment"> 枠に居ない人のコメントを弾く</label><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="fakeSelfComment"> 自分の名前を騙ったコメントを弾く</label><p class="card-sub" data-guard-ownernote style="margin:8px 0 0 24px;display:none;">キック・リスナーに戻すは、枠を開いた人だけが使えます。</p>
+<p class="card-sub" style="margin:8px 0 0 24px;">別の端末から自分でコメントすると、いちばん下の項目は誤検知します。枠を出ると判定はリセットされます。</p>
+</details>
+
+<div class="settings-subhead"> 通話・発話</div>
+<label class="field-label" style="margin-top:10px;">ノイズ抑制（自分のマイク）</label>
+<p class="page-desc" style="margin:0 0 6px;white-space:normal;">まわりの音を消して、自分の声だけを相手に届けます。迷ったら「おまかせ」を選ぶだけで大丈夫です。</p>
+<div class="ns-presets" id="nsPresetsSettings"><button type="button" class="ns-preset" data-ns-preset="auto">おまかせ<small>ふだんはこれ</small></button><button type="button" class="ns-preset" data-ns-preset="quiet">静かな部屋<small>ひかえめに消す</small></button><button type="button" class="ns-preset" data-ns-preset="noisy">うるさい所<small>しっかり消す</small></button><button type="button" class="ns-preset" data-ns-preset="off">使わない<small>端末まかせ</small></button></div>
+<details class="ns-advanced"><summary>くわしく設定する</summary>
+<label class="field-label" style="margin-top:10px;">かけ方</label>
+<select id="nsModeSel" style="width:100%;">
+<option value="strong">強力（推奨）</option>
+<option value="std">標準（端末まかせ）</option>
+<option value="off">切</option>
+</select>
+<p class="page-desc" style="margin-top:4px;white-space:normal;">「強力」は、送る前に端末の中で雑音だけを取り除きます。エアコン・扇風機・キーボード・車の走行音のような鳴りっぱなしの音によく効きます。声はそのまま残ります。通信は増えません。</p>
+<div id="nsStrongOpts">
+<label class="check-row" style="margin-top:10px;"><input type="checkbox" id="nsAutoChk"> おまかせ（周りの音に合わせて自動）</label>
+<p class="page-desc" style="margin:4px 0 0 24px;white-space:normal;">静かな所では弱く、うるさい所では強くします。通話中もゆっくり合わせ続けるので、ふだんはこのままで大丈夫です。</p>
+<label class="field-label" style="margin-top:10px;">効き具合</label>
+<input id="nsLevelRange" type="range" min="30" max="100" step="5" value="60" style="width:100%;">
+<div id="nsLevelLabel" class="card-sub" style="text-align:center;">60%</div>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="nsGateChk"> 話していない間は完全に無音にする</label>
+<p class="page-desc" style="margin-top:4px;white-space:normal;">息づかいや衣ずれも消えます。声を出し始めるとすぐ戻ります。</p>
+</div>
+</details>
+<button id="micTestBtn" class="theme-btn" style="margin-top:10px;">マイクを試す（聴き比べ）</button>
+<div id="micTestPanel" style="display:none;margin-top:10px;padding:10px;border:1px solid var(--border,#2a2d34);border-radius:10px;">
+<div id="micTestState" class="card-sub">止まっています</div>
+<label class="field-label" style="margin-top:8px;">マイクに入っている音</label>
+<div style="height:10px;background:var(--border,#2a2d34);border-radius:5px;overflow:hidden;"><div id="micTestInBar" style="height:100%;width:0;background:#6aa9ff;"></div></div>
+<label class="field-label" style="margin-top:8px;">ノイズ抑制のあと</label>
+<div style="height:10px;background:var(--border,#2a2d34);border-radius:5px;overflow:hidden;"><div id="micTestOutBar" style="height:100%;width:0;background:#2AC1C7;"></div></div>
+<label class="field-label" style="margin-top:8px;">人の声らしさ</label>
+<div style="height:10px;background:var(--border,#2a2d34);border-radius:5px;overflow:hidden;"><div id="micTestVadBar" style="height:100%;width:0;background:#F5C518;"></div></div>
+<div id="micTestNums" class="card-sub" style="margin-top:6px;">—</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+<button id="micTestStart" class="theme-btn" style="width:auto;">マイク開始</button>
+<button id="micTestStop" class="theme-btn" style="width:auto;">停止</button>
+<button id="micTestRec" class="theme-btn" style="width:auto;">5秒録る</button>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">
+<button id="micTestPlayRaw" class="theme-btn" style="width:auto;">元の音を再生</button>
+<button id="micTestPlayWet" class="theme-btn" style="width:auto;">抑制後を再生</button>
+</div>
+<label class="check-row" style="margin-top:10px;"><input type="checkbox" id="micTestMonitor"> そのまま聴く（イヤホンを付けてから）</label>
+<p class="page-desc" style="margin-top:4px;white-space:normal;">スピーカーのまま入れると、自分の声がマイクに戻ってピーッと鳴ります。上の「効き具合」を動かすと、聴きながらその場で変わります。</p>
+</div>
+<label class="field-label" style="margin-top:10px;">発話ハイライトの感度</label>
+<input id="speakSensRange" type="range" min="2" max="10" step="1" value="4" style="width:100%;">
+<div id="speakSensLabel" class="card-sub" style="text-align:center;">標準</div>
+<label class="field-label" style="margin-top:10px;">発話インジケータの色</label>
+<input id="speakColorInput" type="color" value="#2AC1C7" style="width:100%;height:40px;border:1px solid var(--border,#2a2d34);border-radius:8px;background:transparent;cursor:pointer;">
+<label class="field-label" style="margin-top:10px;">光る強さ</label>
+<select id="speakGlowSel" style="width:100%;">
+<option value="soft">弱め</option>
+<option value="normal">標準</option>
+<option value="strong">強め</option>
+</select>
+<label class="check-row" style="margin-top:10px;"><input type="checkbox" id="speakPulseChk" checked> 発話中に脈動アニメーション</label>
+<label class="field-label" style="margin-top:10px;">通話中に他画面へ移動したときの表示</label>
+<select id="callMiniSelect">
+<option value="bubble">浮かぶ話者アイコン(丸)</option>
+<option value="banner">バナー(通話中...)</option>
+<option value="pip">ピクチャーinピクチャー(端末)</option>
+<option value="overlay">他のアプリの上に表示(丸アイコン)</option>
+<option value="none">表示しない</option>
+</select>
+<hr style="border:none;border-top:1px solid var(--border,#2a2d34);margin:12px 0;">
+<label class="check-row"><input type="checkbox" id="densityChk"> コンパクト表示(間隔を詰める)</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="confirmLeaveChk" checked> 通話退出時に確認する</label>
+<div class="settings-subhead"> 権限</div>
+<div id="permStatusRow" class="card-sub" style="line-height:1.9;">確認中...</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+<button id="permRequestBtn" class="theme-btn" style="width:auto;">権限を許可</button>
+<button id="permSettingsBtn" class="theme-btn" style="width:auto;">アプリ設定を開く</button>
+</div>
+<div class="settings-subhead"> セキュリティ</div>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="pinLockChk"> アプリPINロック(開くのに4桁PIN)</label>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="bioChk"> 生体認証(指紋/顔)でも解除する</label>
+<details class="mypage-section" style="margin-top:10px;">
+<summary style="font-size:12px;opacity:.85;">証明書ピンニング(上級者向け)</summary>
+<p class="page-desc" style="white-space:normal;">声とも本体(*.meetscom.com)への接続で、サーバー証明書の公開鍵(SPKI)の SHA-256(base64)が一致するか確かめ、中間者攻撃を防ぎます。<b>信頼できる回線で取得した値</b>を入れてください。空欄なら無効です。証明書が更新されて値が変わると通信できなくなるので、その時は「緊急停止」を入れて更新版を待ってください。取得方法は GitHub の SECURITY.md に記載。</p>
+<label class="field-label" style="margin-top:6px;">ピン(SPKI SHA-256 / base64。カンマ区切りで複数可)</label>
+<textarea id="certPinsInput" rows="3" placeholder="例: AbCd...=,EfGh...=" style="width:100%;resize:vertical;"></textarea>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="certPinOffChk"> 緊急停止(ピンを無視して通常のTLSで接続)</label>
+<button id="certPinsSaveBtn" class="btn-secondary" style="width:auto;margin-top:8px;">保存</button>
+</details>
+<button id="resetSettingsBtn" class="btn-danger" style="margin-top:14px;">設定をすべてリセット</button>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M4 3l16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> フィルター</summary>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="spamMarkChk" checked> 業者っぽいアカウントに「⚠ 業者?」マークを表示</label>
+<p class="page-desc" style="margin-top:4px;">判定は量産型アイコン名・「単語＋3桁数字」の名前・フォロー0などの特徴からの推定です。マークをタップすると理由が出て、業者垢だと確認できたら「BANリストに申請する」で共有BANリストに申請できます（承認制）。</p>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="spamHideChk" checked> 業者と判定したアカウントの投稿・枠を表示しない</label>
+<p class="page-desc" style="margin-top:4px;white-space:normal;">共有BANリストに載っている相手と、判定「高」の相手の投稿・主催する枠を一覧から消します（プロフィールは ID から開けます）。</p>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" id="botAutoChk" checked> 業者アカウントを見つけたら自動でBANリストに申請</label>
+<p class="page-desc" style="margin-top:4px;white-space:normal;">量産型アイコン名・交流0・自己紹介なし・年齢確認なしといった特徴が重なり、さらに「単語＋3桁数字」の名前・既知botとのID連番・同一端末などの補強がある相手を、見つけ次第自動で申請します。判定と証拠はアプリが公式APIから取り直して作り、サーバー側でも同じ規則で再検証するので、申請内容の偽造はできません。<b>自動で申請するだけで、ブロックはしません</b>（ブロックは管理者が承認してから）。同じ相手は1回だけ、暴走防止のため 8秒間隔・1時間30件・1日150件までです。</p>
+<label class="field-label" style="margin-top:8px;">NGワード(1行に1つ。含む投稿を非表示)</label>
+<textarea id="ngWordsInput" rows="4" placeholder="例:&#10;宣伝&#10;スパム" style="width:100%;resize:vertical;"></textarea>
+<label class="field-label" style="margin-top:10px;">ミュート中のユーザー</label>
+<div id="mutedUsersList" class="muted-users"></div>
+<label class="field-label" style="margin-top:10px;">規制対象(⚠)として検出された投稿</label>
+<p class="page-desc">タイムラインで is_explicit 系フラグが立っていた投稿のログです。空の場合はサーバー側が該当フラグを送ってきていません。</p>
+<button id="refreshRegulatedBtn" class="btn-secondary" style="width:auto;">更新</button>
+<div id="regulatedList" class="card-list" style="margin-top:8px;"></div>
+</details>
+<details class="mypage-section" id="secModeration">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3Z"/><path d="M9 12l2 2 4-4"/></svg> 共有BANリスト連携</summary>
+<p class="page-desc">コミュニティで承認されたbot・スパム等のユーザーを、<b>koetomo本体のブロック機能で自動的にブロック</b>します（いつでも設定画面から解除可）。通報は、あなたがプロフィールで手動1タップした時だけ送られます。自動での一斉通報はしません。</p>
+<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+<button id="banlistConsentBtn" class="btn-primary" style="width:auto;">自動ブロックの設定</button>
+<button id="banlistViewBtn" class="btn-secondary" style="width:auto;">BANリストを見る</button>
+<button id="banlistAppealBtn" class="btn-secondary" style="width:auto;">BANの異議申し立て</button>
+</div>
+<div id="banlistStatus" class="card-sub" style="margin-top:8px;opacity:.85;">共有BANリストと自動連携中</div>
+<div id="banlistList" class="card-list" style="margin-top:8px;"></div>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg> タブの表示・起動設定</summary>
+<p class="page-desc">下部タブは長押しでドラッグして並べ替えできます。ここでは使わないタブを隠せます。起動時に開くタブも選べます(マイページは常に表示)。</p>
+<label class="field-label">起動時に開くタブ</label>
+<select id="koeLandingSel" style="width:100%;box-sizing:border-box;margin:4px 0 12px;"></select>
+<label class="field-label">表示するタブ</label>
+<div id="navVisibilityList" class="nav-order-list"></div>
+</details>
+<details class="mypage-section" style="margin-top:12px;">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg> 公式リンク（ヘルプ・サポート）</summary>
+<p class="page-desc">タップで外部ブラウザが開きます。</p>
+<div id="officialLinksDirect" style="display:flex;flex-direction:column;gap:6px;"></div>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg> データ・履歴</summary>
+<p class="page-desc">ここには、専用の画面がまだない公式データだけを置いています。<br>友達の投稿・録音一覧・ポイント履歴・サブスク・所有コミュニティ・友達・バッジ・マッチング・受け取った投げ銭は、それぞれの画面から見られるのでここからは外しました。</p>
+<div style="display:flex;flex-wrap:wrap;gap:6px;">
+<button class="btn-secondary koe-data-btn" data-cmd="get_item_histories" data-key="items" data-title="アイテム履歴" style="width:auto;">アイテム履歴</button>
+<button class="btn-secondary koe-data-btn" data-cmd="get_coin_packs" data-key="coin_packs" data-title="コインパック" style="width:auto;">コインパック</button>
+</div>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2" stroke-linecap="round"/></svg> アカウント操作</summary>
+<button id="koeResetStatusBtn" class="btn-secondary" style="width:auto;">ステータスをリセット</button>
+<button id="koeOpenAllTippings" class="btn-secondary" style="width:auto;margin-top:6px;">投げ銭をすべて開封</button>
+<label class="field-label" style="color:var(--danger,#f23f43);margin-top:12px;">危険な操作(取り消せません)</label>
+<button id="koeDeleteAllTimeline" class="btn-danger" style="width:auto;">タイムライン投稿を全削除</button>
+<button id="koeDeleteAllFeed" class="btn-danger" style="width:auto;margin-top:6px;">フィード投稿を全削除</button>
+</details>
+<details class="mypage-section">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M12 3v4M6 9a6 6 0 0 1 12 0v4a6 6 0 0 1-12 0Z"/><path d="M4 12H2M22 12h-2M5 6 3.5 4.5M19 6l1.5-1.5M6 18l-1.5 1.5M18 18l1.5 1.5"/></svg> 診断ログ(不具合の調査用)</summary>
+<p class="page-desc">アプリの通信ログを確認できます。不具合の報告時に「全部コピー」で貼り付けると原因調査に役立ちます。</p>
+<button id="koeDbgOpen" class="btn-secondary" style="width:auto;">診断ログを開く</button>
+</details>
+<details class="mypage-section" open style="border:1px solid var(--danger,#f23f43);border-radius:10px;">
+<summary>このアプリで「できないこと」(移植不可)</summary>
+<p class="page-desc">下記はAPIではなくスマホ側の仕組みが必要なため、非公式クライアントでは実現できません。</p>
+<div class="card-sub" style="line-height:1.8;white-space:normal;overflow:visible;text-overflow:clip;">
+・コイン/サブスクの<b>購入</b> … Google Play課金が必要（残高表示・消費は可能）<br>
+・<b>プッシュ通知</b>の受信 … 公式のFirebase鍵が必要（代わりにアプリ内で定期取得）<br>
+・SMS/電話番号<b>認証</b>の一部 … 端末側の認証が絡む場合<br>
+・端末認証・改ざん検知が要る機能 … 公式サーバーが弾く場合あり<br>
+・「マッチング」「dive拡張」など用途未確定の機能 … 暫定実装(動かない場合あり)
+</div>
+</details>
+<details class="mypage-section" open style="margin-top:8px;">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.2-1.5 6.2-6.7A5.2 5.2 0 0 0 19.9 5a4.9 4.9 0 0 0-.1-3.6s-1.2-.3-3.9 1.5a13.4 13.4 0 0 0-7 0C6.2 1.1 5 1.4 5 1.4A4.9 4.9 0 0 0 4.9 5a5.2 5.2 0 0 0-1.4 3.6c0 5.2 3.2 6.4 6.2 6.7a3.4 3.4 0 0 0-.9 2.6V22"/></svg> 最新版・ソースコード(GitHub)</summary>
+<p class="page-desc" style="white-space:normal;">最新版のダウンロードとソースコードはGitHubで公開しています。新しいバージョンが出たら起動時に自動でお知らせします。</p>
+<div id="koeVersionLine" class="card-sub" style="white-space:normal;overflow:visible;text-overflow:clip;margin-bottom:8px;">バージョンを確認中…</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;">
+<button id="koeUpdateCheckBtn" class="btn-primary" style="width:auto;">更新を確認</button>
+<button id="koeGithubBtn" class="btn-secondary" style="width:auto;">GitHubを開く</button>
+</div>
+</details>
+</div>
+</section>
+</div>
+<button id="composeFab" class="fab" title="投稿する" style="display:none;"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></button>
+</div>
+</div>
+<div id="toastContainer" class="toast-container"></div>
+<div id="koeDbgModal" class="modal" style="display:none;z-index:9999;">
+<div class="modal-content" style="max-width:760px;width:96%;height:88vh;display:flex;flex-direction:column;">
+<div class="modal-header">
+<span>診断ログ <span id="koeDbgCount" style="opacity:.6;font-size:12px;"></span></span>
+<button id="koeDbgClose" class="modal-close">✕</button>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 12px;align-items:center;border-bottom:1px solid var(--border,#333);">
+<button class="chip koe-dbg-filter active" data-f="all">すべて</button>
+<button class="chip koe-dbg-filter" data-f="err">失敗のみ</button>
+<button class="chip koe-dbg-filter" data-f="api">API</button>
+<button class="chip koe-dbg-filter" data-f="net">通信(ネイティブ)</button>
+<button class="chip koe-dbg-filter" data-f="js">JS例外</button>
+<label class="check-row" style="margin:0 0 0 auto;font-size:12px;"><input type="checkbox" id="koeDbgAuto" checked> 自動更新</label>
+</div>
+<div style="display:flex;gap:6px;flex-wrap:wrap;padding:6px 12px;">
+<button id="koeDbgCopy" class="btn-secondary" style="width:auto;padding:4px 12px;font-size:12px;">全部コピー</button>
+<button id="koeDbgClear" class="btn-danger" style="width:auto;padding:4px 12px;font-size:12px;">クリア</button>
+</div>
+<div id="koeDbgList" style="flex:1;overflow-y:auto;padding:8px 12px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;line-height:1.5;"></div>
+</div>
+</div>
+<div id="inputModal" class="modal" style="display:none;">
+<div class="modal-content small">
+<div class="modal-header">
+<span id="inputModalTitle">入力</span>
+<button id="inputModalClose" class="modal-close">✕</button>
+</div>
+<div class="modal-body">
+<textarea id="inputModalField" class="modal-textarea" rows="3"></textarea>
+</div>
+<div class="modal-footer">
+<button id="inputModalCancel" class="btn-secondary">キャンセル</button>
+<button id="inputModalOk" class="btn-primary">送信</button>
+</div>
+</div>
+</div>
+<div id="dlFormatSheet" class="modal" style="display:none;">
+<div class="modal-content" style="max-width:340px;">
+<div class="modal-header"><h3>保存する形式</h3><button id="dlFormatClose" class="modal-close">✕</button></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding:6px 0;">
+<button class="btn-secondary dl-fmt-btn" data-fmt="original">元の形式のまま(速い・おすすめ)</button>
+<button class="btn-secondary dl-fmt-btn" data-fmt="mp3">MP3 (128kbps・どこでも再生できる)</button>
+<button class="btn-secondary dl-fmt-btn" data-fmt="mp3hq">MP3 (320kbps・高音質)</button>
+<button class="btn-secondary dl-fmt-btn" data-fmt="wav">WAV (無圧縮・編集向き)</button>
+</div>
+<label class="check-row"><input type="checkbox" id="dlFmtRemember"> 次回から聞かずにこの形式で保存する</label>
+<p style="font-size:11px;color:var(--text-muted,#888);margin:4px 2px 0;">チェックを入れて選ぶと、次からは聞かずにその形式で保存します（マイページ →「保存(ダウンロード)」でいつでも戻せます。聞かない設定でも保存ボタンの<b>長押し</b>でこの画面を開けます）。<br>元の形式はふつう M4A(AAC)です。変換は端末上で行うため、長い音声は少し時間がかかります(10分まで)。</p>
+</div>
+</div>
+<div id="imgFormatSheet" class="modal" style="display:none;">
+<div class="modal-content" style="max-width:340px;">
+<div class="modal-header"><h3>保存する形式</h3><button id="imgFormatClose" class="modal-close">✕</button></div>
+<div style="display:flex;flex-direction:column;gap:8px;padding:6px 0;">
+<button class="btn-secondary img-fmt-btn" data-fmt="original">元の形式のまま(速い・おすすめ)</button>
+<button class="btn-secondary img-fmt-btn" data-fmt="jpg">JPEG (写真向き・軽い)</button>
+<button class="btn-secondary img-fmt-btn" data-fmt="png">PNG (画質そのまま・透過対応)</button>
+<button class="btn-secondary img-fmt-btn" data-fmt="webp">WebP (いちばん軽い)</button>
+</div>
+<label class="check-row"><input type="checkbox" id="imgFmtRemember"> 次回から聞かずにこの形式で保存する</label>
+<p style="font-size:11px;color:var(--text-muted,#888);margin:4px 2px 0;">チェックを入れて選ぶと、次からは聞かずにその形式で保存します（マイページ →「保存(ダウンロード)」でいつでも戻せます。聞かない設定でも保存ボタンの<b>長押し</b>でこの画面を開けます）。<br>元の形式のままなら、JPEG・PNG・WebP・GIF などを判別して正しい拡張子で保存します。JPEG は透過を保てないため白で埋めます。</p>
+</div>
+</div>
+<div id="recordCommentModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header"><h3>コメント</h3><button id="recordCommentClose" class="modal-close">✕</button></div>
+<div class="modal-body"><div id="recordCommentList"></div></div>
+<div class="pd-reply-row">
+<textarea id="recordCommentInput" rows="1" placeholder="コメントを書く…(改行OK)"></textarea>
+<button id="recordCommentSend" class="btn-primary" style="width:auto;">送信</button>
+</div>
+</div>
+</div>
+<div id="confirmModal" class="modal" style="display:none;">
+<div class="modal-content small">
+<div class="modal-body">
+<p id="confirmModalText"></p>
+</div>
+<div class="modal-footer">
+<button id="confirmModalCancel" class="btn-secondary">キャンセル</button>
+<button id="confirmModalOk" class="btn-danger">実行</button>
+</div>
+</div>
+</div>
+<div id="postDetailModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header">
+<span>投稿の詳細</span>
+<span style="display:flex; align-items:center; gap:8px;">
+<button id="pdBookmarkBtn" class="btn-secondary" style="display:none; width:auto; padding:4px 12px; font-size:12px;">☆ 保存</button>
+<button id="postDetailClose" class="modal-close">✕</button>
+</span>
+</div>
+<div class="modal-body">
+<div id="pdPost" class="pd-post"></div>
+<div class="pd-section-title"><svg class="ico" viewBox="0 0 24 24" fill="currentColor" style="color:#ff5a6a"><path d="M12 20.3 4.6 13c-2-2-2-5.2 0-7.1 1.9-1.8 4.9-1.6 6.7.3l.7.8.7-.8c1.8-1.9 4.8-2.1 6.7-.3 2 1.9 2 5.1 0 7.1L12 20.3Z"/></svg> いいねした人 <span id="pdLikeCount"></span></div>
+<div id="pdLikers" class="pd-likers"></div>
+<div class="pd-section-title" style="margin-top:12px;"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H9l-4 3.6a.8.8 0 0 1-1.3-.6V5.5Z"/></svg> 返信</div>
+<div id="pdComments" class="pd-comments"></div>
+<div class="pd-reply-row">
+<textarea id="pdReplyInput" rows="1" placeholder="返信を書く…(改行OK)"></textarea>
+<button id="pdReplyBtn" class="btn-primary" style="width:auto;">送信</button>
+</div>
+<div style="padding:6px 12px 12px; text-align:right;">
+<button id="pdBadVoteBtn" class="btn-secondary" style="width:auto; padding:4px 12px; font-size:12px;">この投稿を低評価/報告</button>
+</div>
+</div>
+</div>
+</div>
+<div id="cheeringRatingModal" class="modal" style="display:none;">
+<div class="modal-content small">
+<div class="modal-header"><span>通話の評価</span><button class="modal-close" onclick="window.__koeCloseCheerRating&&window.__koeCloseCheerRating()">✕</button></div>
+<div class="modal-body">
+<p class="page-desc" id="cheeringRatingWho">相手との通話はどうでしたか?</p>
+<div id="cheeringRatingStars" class="cheer-stars" style="font-size:36px;text-align:center;margin:10px 0;letter-spacing:2px;"></div>
+<textarea id="cheeringRatingComment" class="modal-textarea" rows="3" placeholder="コメント(任意)"></textarea>
+</div>
+<div class="modal-footer">
+<button class="btn-secondary" onclick="window.__koeCloseCheerRating&&window.__koeCloseCheerRating()">スキップ</button>
+<button id="cheeringRatingSubmit" class="btn-primary">評価を送信</button>
+</div>
+</div>
+</div>
+<div id="koeDataModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header"><span id="koeDataTitle">データ</span><button class="modal-close" onclick="document.getElementById('koeDataModal').style.display='none'">✕</button></div>
+<div id="koeDataList" class="card-list" style="max-height:72vh;overflow:auto;padding:8px;"></div>
+</div>
+</div>
+<div id="composeModal" class="modal" style="display:none;">
+<div class="modal-content small">
+<div class="modal-header">
+<span>投稿</span>
+<span id="composeCounterTop" style="font-size:13px;opacity:.7;">0 / 500</span>
+<button id="composeModalClose" class="modal-close">✕</button>
+</div>
+<div class="modal-body">
+<textarea id="composeText" class="modal-textarea" rows="5" maxlength="500" placeholder="いまどうしてる?  (改行OK)"></textarea>
+<label class="field-label">投稿先</label>
+<div class="post-dest-row" style="display:flex;gap:8px;margin:4px 0 10px;">
+<label class="post-dest-opt" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid var(--accent,#4a90d9);border-radius:999px;cursor:pointer;font-size:13px;"><input type="radio" name="postDest" value="0" checked style="accent-color:var(--accent,#4a90d9);"> つぶやく</label>
+<label class="post-dest-opt" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border:1.5px solid rgba(128,128,128,.35);border-radius:999px;cursor:pointer;font-size:13px;"><input type="radio" name="postDest" value="5" style="accent-color:var(--accent,#4a90d9);"> 話そう(通話募集)</label>
+</div>
+<select id="composeTopic" style="display:none;"><option value="0">timeline</option><option value="5">call</option></select>
+<label class="field-label">画像</label>
+<input id="composeImageInput" type="file" accept="image/*" style="display:none;">
+<div style="display:flex;gap:8px;align-items:center;">
+<button id="composeImageBtn" class="btn-secondary" style="width:auto;"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 17l5-4 4 3 3-2 4 3" stroke-linecap="round" stroke-linejoin="round"/></svg> 画像を選択</button>
+<span id="composeImageName" style="font-size:12px;color:var(--text-muted,#888);">未選択</span>
+<button id="composeImageClear" class="modal-close" style="display:none;">✕</button>
+</div>
+<img id="composeImagePreview" style="display:none;max-width:100%;max-height:180px;border-radius:10px;margin-top:8px;cursor:zoom-in;" title="タップで拡大確認" onclick="event.stopPropagation();this.src&&openLightbox(this.src)">
+<label class="field-label" style="margin-top:10px;">音声(最大90秒)</label>
+<div class="compose-voice-box">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+<button id="composeVoiceBtn" class="btn-secondary" style="width:auto;"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="7"/></svg> 録音</button>
+<span id="composeVoiceStatus" style="font-size:12px;color:var(--text-muted,#888);">未録音</span>
+<button id="composeVoiceClear" class="modal-close" style="display:none;" title="削除してやり直す">✕</button>
+</div>
+<div id="composeVoiceProgressTrack" class="compose-voice-progress-track" style="display:none;"><div id="composeVoiceProgressBar" class="compose-voice-progress-bar"></div></div>
+<audio id="composeVoicePreview" controls style="display:none;width:100%;margin-top:8px;"></audio>
+</div>
+</div>
+<div class="modal-footer">
+<button id="composeCancel" class="btn-secondary">キャンセル</button>
+<button id="composeSubmit" class="btn-primary">投稿する</button>
+</div>
+</div>
+</div>
+<div id="profileViewModal" class="modal" style="display:none;">
+<div class="modal-content small">
+<div class="modal-header">
+<span>プロフィール</span>
+<div class="pv-menu-wrap">
+<button id="profileViewMenuBtn" class="modal-close" title="メニュー">&#8942;</button>
+<div id="profileViewActionsMenu" class="pv-actions-menu" style="display:none;">
+<button id="profileViewFollowBtn" class="pv-menu-item">フォローする</button>
+<button id="profileViewTipBtn" class="pv-menu-item"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10a2 2 0 0 1 2-1.5c1.2 0 2 .7 2 1.6 0 1.8-3.5 1.3-3.5 3.2 0 .9.9 1.7 2 1.7a2 2 0 0 0 2-1.4" stroke-linecap="round"/></svg> 投げ銭</button>
+<button id="profileViewInviteBtn" class="pv-menu-item" style="display:none;">枠に招待</button>
+<button id="profileViewReportBtn" class="pv-menu-item"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="3" width="1.8" height="18" rx=".9"/><path d="M6 4h11l-2 3 2 3H6V4Z"/></svg> 通報</button>
+<button id="profileViewBlockBtn" class="pv-menu-item" style="color:var(--danger,#f23f43);">ブロック</button>
+</div>
+</div>
+<button id="profileViewModalClose" class="modal-close">✕</button>
+</div>
+<div class="modal-body">
+<div class="pv-hero"><img id="profileViewHeader" class="pv-header" style="display:none;" onerror="this.style.display='none'"></div>
+<div class="profile-view-header">
+<span id="profileViewAvatar"></span>
+<div>
+<div id="profileViewName" class="card-name"></div>
+<div class="card-sub">user_id: <span id="profileViewUserId"></span></div>
+</div>
+<img id="profileViewBadge" class="badge-icon" style="display:none;">
+</div>
+<p id="profileViewComment" class="profile-view-comment"></p>
+<div id="profileViewRoom" class="koe-pv-room" style="display:none;"></div>
+<div id="profileViewGifts" class="koe-pv-gifts" style="display:none;"></div>
+<div id="profileViewDetails" class="profile-view-details"></div>
+<div id="profileViewBadges" class="badge-row"></div>
+<div class="field-label" id="profileViewPostsLabel" style="margin-top:12px;display:none;">投稿</div>
+<div id="profileViewPosts" class="card-list"></div>
+</div>
+</div>
+</div>
+<div id="latencyGraphModal" class="modal" style="display:none;">
+<div class="modal-content small">
+<div class="modal-header">
+<span>API応答速度</span>
+<button id="latencyGraphClose" class="modal-close">✕</button>
+</div>
+<div class="modal-body">
+<svg id="latencyGraphSvg" viewBox="0 0 280 120" style="width:100%;height:auto;background:var(--bg-input,#1c1c1c);border-radius:10px;"></svg>
+<div id="latencyGraphStats" class="page-desc" style="margin-top:8px;"></div>
+</div>
+</div>
+</div>
+<div id="followListModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header">
+<span id="followListTitle">一覧</span>
+<button id="followListClose" class="modal-close">✕</button>
+</div>
+<div id="followListBody" class="card-list" style="padding:12px; overflow-y:auto;"></div>
+</div>
+</div>
+<div id="profileQuickEditModal" class="modal" style="display:none;">
+<div class="modal-content small">
+<div class="modal-header">
+<span>プロフィールを編集</span>
+<button id="quickEditClose" class="modal-close">✕</button>
+</div>
+<div class="modal-body">
+<label class="field-label">名前</label>
+<input id="quickEditName" type="text" placeholder="名前">
+<label class="field-label" style="margin-top:10px;">自己紹介</label>
+<textarea id="quickEditComment" class="modal-textarea" rows="4" placeholder="自己紹介コメント"></textarea>
+<div id="quickEditBirthdayWrap" style="display:none;margin-top:10px;">
+<label class="field-label">誕生日(初回のみ・YYYYMMDD形式)</label>
+<input id="quickEditBirthdayInput" type="text" placeholder="例: 19900101" inputmode="numeric" maxlength="8">
+<div class="card-sub" style="margin-top:4px;">保存にはkoetomo側の仕様で生年月日が必要です(最初の1回のみ入力すれば以後は不要)</div>
+</div>
+<div id="quickEditStatus" class="empty-msg" style="padding:6px 0;"></div>
+</div>
+<div class="modal-footer">
+<button id="quickEditCancel" class="btn-secondary">キャンセル</button>
+<button id="quickEditSaveBtn" class="btn-primary">保存する</button>
+</div>
+</div>
+</div>
+<div id="notifSettingsPageModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header">
+<span>通知の設定</span>
+<button id="notifSettingsPageClose" class="modal-close">✕</button>
+</div>
+<div class="modal-body">
+<div class="field-label">種類ごとに表示オン/オフ</div>
+<p class="page-desc" style="margin-top:4px;">オフにした種類は一覧にもバッジ件数にも出てこなくなります(この端末だけの表示設定です)。</p>
+<div id="notifCatListPage" class="notif-cat-list"></div>
+<div class="field-label" style="margin-top:16px;">表示するタブ</div>
+<p class="page-desc" style="margin-top:4px;">通知画面の上部に表示するタブ(通常/重要/着信/お知らせ)を選べます。</p>
+<div id="notifTabListPage" class="notif-cat-list"></div>
+</div>
+</div>
+</div>
+<div id="userSearchModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header">
+<span id="userSearchModalTitle">ユーザー検索</span>
+<button id="userSearchModalClose" class="modal-close">✕</button>
+</div>
+<div style="padding:10px 12px 0;display:flex;gap:8px;">
+<input id="userSearchModalInput" type="text" placeholder="名前で検索" style="flex:1;">
+<button id="userSearchModalBtn" class="btn-secondary" style="width:auto;">検索</button>
+</div>
+<div id="userSearchModalResults" class="card-list" style="padding:12px;overflow-y:auto;"></div>
+</div>
+</div>
+<div id="tipModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header">
+<span>投げ銭 <span id="tipTargetName" style="opacity:.7;font-size:13px;"></span></span>
+<button id="tipModalClose" class="modal-close">✕</button>
+</div>
+<div class="modal-body">
+<p class="page-desc" style="margin-bottom:8px;">贈るアイテムを選んでください。コインを消費します。</p>
+<div id="tipItemList" class="card-list"></div>
+</div>
+</div>
+</div>
+<div id="chatModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header">
+<div id="chatModalPartner" class="chat-modal-partner" title="プロフィールを開く"><span id="chatModalTitle"></span></div>
+<button id="chatModalClose" class="modal-close">✕</button>
+</div>
+<div id="chatMessages" class="chat-messages"></div>
+<div id="chatImagePreviewRow" style="display:none;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid var(--border,#333);">
+<img id="chatImagePreview" style="max-height:64px;border-radius:8px;cursor:zoom-in" onclick="if(this.src)openLightbox(this.src)" title="タップで拡大">
+<span id="chatImageName" style="font-size:12px;color:var(--text-muted,#888);flex:1;">写真を送信します</span>
+<button id="chatImageClear" class="modal-close" type="button">✕</button>
+</div>
+<div id="chatVoiceRow" style="display:none;align-items:center;gap:8px;padding:6px 10px;border-top:1px solid var(--border,#333);">
+<audio id="chatVoicePreview" controls style="flex:1;max-width:100%;"></audio>
+<button id="chatVoiceClear" class="modal-close" type="button">✕</button>
+</div>
+<div class="chat-input-row">
+<input id="chatImageInput" type="file" accept="image/*" style="display:none;">
+<button id="chatVoiceBtn" class="chat-img-btn" title="音声を送る" type="button"><svg class="ico" viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="11" y="18" width="2" height="3.4" rx="1"/></svg></button>
+<button id="chatImageBtn" class="chat-img-btn" title="写真を送る" type="button"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="2"/><path d="M4 17l5-4 4 3 3-2 4 3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+<textarea id="chatInput" rows="1" placeholder="メッセージ"></textarea>
+<button id="chatSendBtn" class="btn-primary">送信</button>
+</div>
+</div>
+</div>
+<div id="communityModal" class="modal" style="display:none;">
+<div class="modal-content">
+<div class="modal-header">
+<span id="communityModalTitle"></span>
+<div id="communityModalDesc" class="community-desc"></div>
+<span style="display:flex; align-items:center; gap:8px;">
+<button id="communityJoinBtn" class="btn-secondary" style="width:auto; padding:4px 12px; font-size:12px;">参加</button>
+<button id="communityReportBtn" class="btn-secondary" title="このコミュニティを通報" style="width:auto; padding:4px 10px; font-size:12px;"><svg class="ico" viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><rect x="4" y="3" width="1.8" height="18" rx=".9"/><path d="M6 4h11l-2 3 2 3H6V4Z"/></svg></button>
+<button id="communityModalClose" class="modal-close">✕</button>
+</span>
+</div>
+<div class="call-tabs" style="padding:8px 12px 0;">
+<button class="chip community-tab active" data-tab="posts">投稿</button>
+<button class="chip community-tab" data-tab="rooms">トークルーム</button>
+<button class="chip community-tab" data-tab="members">メンバー</button>
+<button class="chip community-tab" data-tab="requests">参加申請</button>
+<button class="chip community-tab" data-tab="rules">ルール</button>
+</div>
+<div id="communityPosts" class="chat-messages"></div>
+<div id="communityRoomsList" class="card-list" style="display:none; padding:12px; overflow-y:auto;"></div>
+<div id="communityMembers" class="card-list" style="display:none; padding:12px; overflow-y:auto;">
+<button id="communityInviteBtn" class="btn-secondary" style="margin-bottom:10px;">＋ ユーザーIDで招待</button>
+<div id="communityMembersList"></div>
+<details class="mypage-section" id="communityToolsSection" style="margin-top:12px;">
+<summary><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 6a3.5 3.5 0 0 0 4.5 4.5L21 13l-8 8-2.5-2.5A3.5 3.5 0 0 0 6 14L3.5 11.5 11.5 3.5 14 6Z"/></svg> 管理ツール（上級者向け）</summary>
+<p class="page-desc" style="margin-top:6px;">投稿コメントの操作、トークルームの役割変更・コメント表示、参加申請の取り消しができます。IDを指定して実行します。</p>
+<div style="margin-top:8px;">
+<label class="field-label">投稿コメントのいいね/削除</label>
+<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+<input id="ctPostId" type="text" placeholder="post_id" style="width:110px;">
+<input id="ctCommentId" type="text" placeholder="comment_id" style="width:120px;">
+<button id="ctCommentLikeBtn" class="btn-secondary" style="width:auto; padding:4px 10px; font-size:12px;">いいね</button>
+<button id="ctCommentUnlikeBtn" class="btn-secondary" style="width:auto; padding:4px 10px; font-size:12px;">解除</button>
+<button id="ctCommentDeleteBtn" class="btn-danger" style="width:auto; padding:4px 10px; font-size:12px;">削除</button>
+</div>
+</div>
+<div style="margin-top:10px;">
+<label class="field-label">トークルームの役割変更</label>
+<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+<input id="ctRoomId" type="text" placeholder="room_id" style="width:100px;">
+<input id="ctTargetId" type="text" placeholder="target_id" style="width:110px;">
+<select id="ctRole" style="width:auto;"><option value="speaker">スピーカー</option><option value="listener">リスナー</option><option value="speaker_applicant">申請中</option></select>
+<button id="ctRoleBtn" class="btn-secondary" style="width:auto; padding:4px 10px; font-size:12px;">変更</button>
+</div>
+</div>
+<div style="margin-top:10px;">
+<label class="field-label">トークルームのコメント表示</label>
+<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+<input id="ctRoomCommentsId" type="text" placeholder="room_id" style="width:120px;">
+<button id="ctRoomCommentsBtn" class="btn-secondary" style="width:auto; padding:4px 10px; font-size:12px;">表示</button>
+</div>
+</div>
+<div style="margin-top:10px;">
+<label class="field-label">ルールの削除</label>
+<div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+<input id="ctRuleId" type="text" placeholder="rule_id" style="width:120px;">
+<button id="ctRuleDeleteBtn" class="btn-danger" style="width:auto; padding:4px 10px; font-size:12px;">ルール削除</button>
+</div>
+</div>
+<div style="margin-top:10px;">
+<button id="ctCancelJoinBtn" class="btn-secondary" style="width:auto; padding:4px 12px; font-size:12px;">自分の参加申請を取り消す</button>
+</div>
+<div id="communityToolsResult" class="card-list" style="margin-top:10px;"></div>
+</details>
+</div>
+<div id="communityJoinRequests" class="card-list" style="display:none; padding:12px; overflow-y:auto;">
+<p class="page-desc" style="margin-bottom:8px;">承認制コミュニティの参加申請です（オーナー/管理者のみ操作できます）。</p>
+<div id="communityJoinRequestsList"></div>
+</div>
+<div id="communityRules" class="card-list" style="display:none; padding:12px 16px; overflow-y:auto;"></div>
+<div id="communityInputRow" class="chat-input-row">
+<textarea id="communityPostInput" rows="1" placeholder="投稿する(改行OK)"></textarea>
+<button id="communityPostBtn" class="btn-primary">投稿</button>
+</div>
+</div>
+</div>
+<div id="callOverlay" class="call-overlay" style="display:none;">
+<div class="callv2">
+<div class="callv2-top">
+<div class="callv2-topinfo">
+<span class="callv2-globe"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm6.9 6h-2.6a12 12 0 0 0-1.3-3.3A8 8 0 0 1 18.9 8ZM12 4c.8 1 1.5 2.4 1.9 4h-3.8C10.5 6.4 11.2 5 12 4ZM4.3 14a8 8 0 0 1 0-4h3a17 17 0 0 0 0 4Zm.8 2h2.6a12 12 0 0 0 1.3 3.3A8 8 0 0 1 5.1 16Zm2.6-8H5.1a8 8 0 0 1 3.9-3.3A12 12 0 0 0 7.7 8ZM12 20c-.8-1-1.5-2.4-1.9-4h3.8c-.4 1.6-1.1 3-1.9 4Zm2.3-6H9.7a15 15 0 0 1 0-4h4.6a15 15 0 0 1 0 4Zm.7 5.3a12 12 0 0 0 1.3-3.3h2.6a8 8 0 0 1-3.9 3.3ZM16.7 14a17 17 0 0 0 0-4h3a8 8 0 0 1 0 4Z"/></svg></span>
+<div class="callv2-titles">
+<div class="callv2-title" id="callRoomName">通話</div>
+<div class="callv2-sub"><span id="callTimer">00:00</span> ・ <span id="callMemberCount">0</span>人<span id="callInCallLabel"> 通話中</span><span id="callRemain" class="callv2-remain" style="display:none;"></span><span id="callModBadge" class="callv2-modbadge" style="display:none;">🛡 モデレーター</span></div>
+</div>
+</div>
+<div class="callv2-topbtns">
+<button id="callGuardToggle" class="callv2-icon" title="枠の防御（スパム・爆音）"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.6-3 8.4-7 10-4-1.6-7-5.4-7-10V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg><span id="callGuardBadge" class="callv2-badge" style="display:none;">0</span></button>
+<button id="callNsToggle" class="callv2-icon" title="ノイズ抑制（マイク）"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="11" y="18" width="2" height="3.4" rx="1"/></svg></button>
+<button id="callSettingsToggle" class="callv2-icon" title="設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.2 5.2l2.1 2.1M16.7 16.7l2.1 2.1M18.8 5.2l-2.1 2.1M7.3 16.7l-2.1 2.1" stroke-linecap="round"/></svg></button>
+<button id="callMinimizeBtn" class="callv2-icon" title="最小化して枠に留まる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+<button id="callCloseBtn" class="callv2-icon" style="display:none;">✕</button>
+</div>
+</div>
+<div id="callMascot" class="call-mascot" style="display:none;" aria-hidden="true">
+<svg viewBox="0 0 100 100" width="76" height="76">
+<path class="cm-wave cm-wave-l" d="M12 56a38 38 0 0 1 9-24" fill="none" stroke="var(--accent,#2AC1C7)" stroke-width="3.5" stroke-linecap="round"/>
+<path class="cm-wave cm-wave-r" d="M88 56a38 38 0 0 0-9-24" fill="none" stroke="var(--accent,#2AC1C7)" stroke-width="3.5" stroke-linecap="round"/>
+<g class="cm-bob">
+<line x1="50" y1="18" x2="50" y2="30" stroke="var(--accent,#2AC1C7)" stroke-width="3"/>
+<circle class="cm-antenna" cx="50" cy="14" r="5" fill="var(--accent,#2AC1C7)"/>
+<circle class="cm-body" cx="50" cy="56" r="28" fill="var(--accent,#2AC1C7)"/>
+<ellipse class="cm-eye" cx="40" cy="54" rx="4" ry="5" fill="#fff"/>
+<ellipse class="cm-eye" cx="60" cy="54" rx="4" ry="5" fill="#fff"/>
+<circle cx="34" cy="62" r="4.5" fill="#fff" opacity=".35"/>
+<circle cx="66" cy="62" r="4.5" fill="#fff" opacity=".35"/>
+<path class="cm-mouth" d="M41 66q9 7 18 0" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/>
+</g>
+</svg>
+<div class="call-mascot-label">つながっています…</div>
+</div>
+<div class="callv2-listwrap">
+<div id="callParticipantList" class="callv2-grid"></div>
+<div id="applicantsBox"></div>
+</div>
+<div id="callStatus" class="callv2-status"></div>
+<button id="callOfferWallBtn" type="button" style="display:none;margin:6px auto 0;max-width:520px;width:calc(100% - 4px);padding:8px 12px;border:none;border-radius:10px;background:linear-gradient(90deg,var(--accent,#2AC1C7),#268aff);color:#fff;font-size:13px;font-weight:700;cursor:pointer;">🎁 無料でコインを貯める（公式・提携広告）</button>
+<div id="callChatPanel" class="callv2-panel" style="display:none;">
+<div class="callv2-tabs"><button type="button" class="callv2-tab active" data-ctab="chat">チャット</button><button type="button" class="callv2-tab" data-ctab="log">ログ<span id="callSysCount" class="callv2-tabcount"></span></button></div>
+<div id="callChatLog" class="callv2-chatlog"></div>
+<div id="callSysLog" class="callv2-chatlog" style="display:none;"></div>
+<div class="callv2-chatinput">
+<textarea id="callChatInput" rows="1" placeholder="コメントを送信(改行OK)"></textarea>
+<button id="callChatSendBtn" class="btn-secondary" style="width:auto;">送信</button>
+</div>
+<p class="callv2-note">コメントはリアルタイムで表示されます・Ctrl+Enterで送信</p>
+</div>
+<div id="callGuardPanel" class="callv2-panel" style="display:none;">
+<label class="field-label">枠の防御 — いま対処している人</label>
+<div id="callGuardList"></div>
+<button id="callGuardCheck" class="btn-secondary" style="width:100%;margin-top:8px;">いま効いているか調べる</button>
+<pre id="callGuardCheckOut" class="callv2-note" style="display:none;white-space:pre-wrap;margin-top:6px;"></pre>
+<div class="guard-group">
+<div class="guard-group-title">見つけたときの動き</div>
+<div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">コメントで見つけたら</span><select data-guard="spamAction" style="width:auto;"><option value="none">そのまま</option><option value="listener">リスナーに戻す</option><option value="kick">キックする</option></select></div><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">音が大きい人は</span><select data-guard="loudAction" style="width:auto;"><option value="none">そのまま</option><option value="listener">リスナーに戻す</option><option value="kick">キックする</option></select></div><label class="check-row" style="margin-top:8px;"><input type="checkbox" data-guard="escalate"> 繰り返す人は対処を強める（隠す→リスナー→キック）</label><p class="callv2-note" style="margin:4px 0 0 24px;">入れていると、1回目は自分の端末の中だけ（非表示・音量down）で様子を見ます。取り違えでいきなりキックしないための設定です。切ると1回目から上の対処を行います。</p><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="notifyChat"> 見つけたら枠のコメント欄に知らせる（自分の枠のみ）</label><label class="field-label" style="margin-top:10px;">他人の枠では（キックできないため）</label>
+<select data-guard="guestAction" style="width:100%;"><option value="volume">音量を下げる</option><option value="silence">声を受け取らない</option><option value="block">声を受け取らない＋ブロック</option></select>
+</div>
+<details class="guard-group">
+<summary class="guard-group-title">何を見つけるか</summary>
+<label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="spamEnabled"> コメントの連投・繰り返し</label><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">10秒に</span><select data-guard="spamMaxPer10s" style="width:auto;"><option value="4">4件</option><option value="6">6件</option><option value="8">8件</option><option value="12">12件</option></select></div><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">同じ文を</span><select data-guard="spamSameText" style="width:auto;"><option value="2">2回</option><option value="3">3回</option><option value="4">4回</option><option value="6">6回</option></select></div><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">長文とみなす</span><select data-guard="longComment" style="width:auto;"><option value="0">見ない</option><option value="200">200文字</option><option value="300">300文字</option><option value="500">500文字</option></select></div><label class="field-label" style="margin-top:8px;">NGワード（改行か読点で区切る）</label>
+<textarea data-guard="ngWords" rows="2" style="width:100%;box-sizing:border-box;" placeholder="例）宣伝URL、荒らし文句"></textarea>
+<label class="check-row" style="margin-top:8px;"><input type="checkbox" data-guard="loudEnabled"> 大きすぎる音</label><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">感度</span><input type="range" data-guard="loudLevel" min="1" max="10" step="1" style="flex:2;"></div><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">この秒数つづいたら</span><select data-guard="loudSeconds" style="width:auto;"><option value="1">1秒</option><option value="2">2秒</option><option value="4">4秒</option></select><select data-guard="loudVolume" style="width:auto;"><option value="0">0%</option><option value="10">10%</option><option value="20">20%</option><option value="40">40%</option></select><span class="callv2-note" style="margin:0;">に</span></div><label class="check-row" style="margin-top:8px;"><input type="checkbox" data-guard="joinFlood"> 入り直しの繰り返し</label><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">3分に</span><select data-guard="joinFloodCount" style="width:auto;"><option value="3">3回</option><option value="4">4回</option><option value="6">6回</option><option value="8">8回</option></select></div><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="handFlood"> 挙手の連打</label><div style="display:flex;gap:6px;align-items:center;margin:4px 0 0 24px;"><span class="callv2-note" style="flex:1;margin:0;">1分に</span><select data-guard="handFloodCount" style="width:auto;"><option value="3">3回</option><option value="4">4回</option><option value="6">6回</option><option value="8">8回</option></select></div></details>
+<details class="guard-group">
+<summary class="guard-group-title">なりすまし・乗っ取りを防ぐ</summary>
+<label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="revertUnapproved"> 承認していない発言者は元に戻す（自分の枠）</label><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="protectRoomSettings"> 枠名・コメント欄を勝手に変えられたら戻す</label><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="strangerComment"> 枠に居ない人のコメントを弾く</label><label class="check-row" style="margin-top:6px;"><input type="checkbox" data-guard="fakeSelfComment"> 自分の名前を騙ったコメントを弾く</label><p class="callv2-note" data-guard-ownernote style="display:none;">キック・リスナーに戻すは、枠を開いた人だけが使えます。それ以外のときは、コメントの非表示と音量を下げる対処だけを行います。</p>
+<p class="callv2-note">別の端末から自分でコメントすると、いちばん下の項目は誤検知します。</p>
+</details>
+</div>
+<div id="callNsPanel" class="callv2-panel" style="display:none;">
+<label class="field-label">ノイズ抑制（自分のマイク）</label>
+<p class="callv2-note" style="margin:0 0 6px;">迷ったら「おまかせ」のままで大丈夫です。</p>
+<div class="ns-presets" id="nsPresetsCall">
+<button type="button" class="ns-preset" data-ns-preset="auto">おまかせ<small>ふだんはこれ</small></button>
+<button type="button" class="ns-preset" data-ns-preset="quiet">静かな部屋<small>ひかえめに消す</small></button>
+<button type="button" class="ns-preset" data-ns-preset="noisy">うるさい所<small>しっかり消す</small></button>
+<button type="button" class="ns-preset" data-ns-preset="off">使わない<small>端末まかせ</small></button>
+</div>
+<details class="ns-advanced"><summary>くわしく設定する</summary>
+<label class="field-label" style="margin-top:8px;">かけ方</label>
+<select id="callNsMode" style="width:100%;">
+<option value="strong">強力（推奨）</option>
+<option value="std">標準（端末まかせ）</option>
+<option value="off">切</option>
+</select>
+<label class="check-row" style="margin-top:10px;"><input type="checkbox" id="callNsAuto"> おまかせ（周りの音に合わせて自動）</label>
+<div style="display:flex;gap:6px;margin:6px 0 0 24px;">
+<button id="callNsMeasure" class="btn-secondary" style="flex:1;">いま測って合わせる</button>
+</div>
+<p class="callv2-note" id="callNsAutoNote" style="margin-left:24px;">静かな所では弱く、うるさい所では強くします。通話中もゆっくり合わせ続けます。</p>
+<label class="field-label" style="margin-top:10px;">効き具合 <span id="callNsLevelLabel">60%</span></label>
+<input id="callNsLevel" type="range" min="30" max="100" step="5" value="60" style="width:100%;">
+<label class="check-row" style="margin-top:6px;"><input type="checkbox" id="callNsGate"> 話していない間は完全に無音にする</label>
+<p class="callv2-note">変えたその場で、いま通話に送っている音に反映されます。</p>
+</details>
+<label class="field-label" style="margin-top:10px;">マイクに入っている音</label>
+<div class="ns-meter"><div id="callNsIn" class="ns-meter-fill" style="background:#6aa9ff;"></div></div>
+<label class="field-label" style="margin-top:6px;">ノイズ抑制のあと（相手に届く音）</label>
+<div class="ns-meter"><div id="callNsOut" class="ns-meter-fill" style="background:#2AC1C7;"></div></div>
+<label class="field-label" style="margin-top:6px;">人の声らしさ</label>
+<div class="ns-meter"><div id="callNsVad" class="ns-meter-fill" style="background:#F5C542;"></div></div>
+<div id="callNsNums" class="callv2-note">—</div>
+<label class="field-label" style="margin-top:10px;">いま自分の耳で聴く（イヤホン推奨）</label>
+<select id="callNsMonitor" style="width:100%;">
+<option value="off">聴かない</option>
+<option value="wet">抑制後（相手に届く音）</option>
+<option value="raw">元の音（抑制なし）</option>
+</select>
+<p class="callv2-note">切り替えた瞬間に耳の音が変わるので、効き具合をその場で比べられます。スピーカーのままだとハウリングします。</p>
+<button id="callNsCheck" class="btn-secondary" style="width:100%;margin-top:8px;">反映を確かめる（5秒録って聴き比べ）</button>
+<div style="display:flex;gap:6px;margin-top:6px;">
+<button id="callNsPlayRaw" class="btn-secondary" style="flex:1;">元の音</button>
+<button id="callNsPlayWet" class="btn-secondary" style="flex:1;">抑制後</button>
+</div>
+<p class="callv2-note">録っている間も通話は止まりません。再生はイヤホン推奨です。</p>
+</div>
+<div id="callSettingsPanel" class="callv2-panel" style="display:none;">
+<label class="field-label">マイク(入力)</label>
+<select id="callMicSelect"></select>
+<label class="field-label">スピーカー(出力)</label>
+<select id="callSpeakerSelect"></select>
+<div id="callRecRow" style="margin-top:8px;">
+<label class="field-label">通話の録音（運営のキャンペーン機能）</label>
+<div style="display:flex; gap:6px;">
+<button id="callRecStartBtn" class="btn-secondary" style="width:auto;">録音開始</button>
+<button id="callRecStopBtn" class="btn-secondary" style="width:auto;">停止</button>
+</div>
+<p class="callv2-note" id="callRecNote">枠主のみ・サーバー側で録音されます。参加者に知らせてから使ってください。</p>
+</div>
+<div id="callOwnerControls" style="display:none; margin-top:8px;">
+<label class="field-label">ルームタイトル変更(オーナーのみ)</label>
+<div style="display:flex; gap:6px;">
+<input id="callTitleInput" type="text" placeholder="新しいタイトル" style="flex:1;">
+<button id="callTitleBtn" class="btn-secondary" style="width:auto;">変更</button>
+</div>
+<button id="callCloseRoomBtn" class="btn-danger" style="display:none; margin-top:8px;">ルーム終了</button>
+<button id="callCommentToggleBtn" class="btn-secondary" style="margin-top:8px;">コメント欄 ON/OFF切替</button>
+</div>
+<div id="callAutoRow" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border,rgba(255,255,255,.08));"><label class="field-label">挙手の自動処理</label><label class="check-row"><input type="checkbox" id="callAutoRaiseChk"> 入ったら自動で挙手する</label><label class="check-row"><input type="checkbox" id="callAutoApproveChk"> オーナーの時、挙手を自動で許可する</label><label class="check-row"><input type="checkbox" id="callAutoRejectChk"> オーナーの時、挙手を自動で拒否する</label><p class="callv2-note">通話ページの設定と同じものです。ここで変えるとすぐ効きます。</p></div><div id="callModRow" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border,rgba(255,255,255,.08));display:none;"><label class="field-label">モデレーター（この枠だけ・枠主のみ）</label><p class="callv2-note" style="margin:0 0 6px;">参加者をタップして「モデレーターにする」で任命できます。任命した人は、あなたの代わりにキックや発言者の上げ下げを頼めます。</p><div id="callModList"></div><label class="check-row" style="margin-top:8px;"><input type="checkbox" id="callModAutoChk"> モデレーターのキックを確認なしで自動実行する</label><p class="callv2-note">オフのときは、モデレーターが操作するたびにあなたに確認が出ます（なりすまし依頼への保険）。信頼できる相手だけオンにしてください。</p></div><div id="callAskModRow" style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border,rgba(255,255,255,.08));display:none;"><label class="field-label">モデレーター</label><button id="callAskModBtn" class="btn-secondary" style="width:100%;">枠主にモデレーターをお願いする</button><p class="callv2-note">枠主が承認すると、あなたも枠主の代わりにキックなどを頼めるようになります（枠主がKoeTomo+のときだけ）。</p></div><details class="call-collapse" style="margin-top:8px;"><summary>ログ</summary><div id="callLog" class="inspect-result" style="height:100px;"></div></details>
+</div>
+<div class="callv2-actions">
+<button id="callRaiseHandBtn" class="callv2-raise" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V6a1.5 1.5 0 0 1 3 0v4m0 0V4.5a1.5 1.5 0 0 1 3 0V10m0 0V6a1.5 1.5 0 0 1 3 0v6m0-2a1.5 1.5 0 0 1 3 0v4a6 6 0 0 1-6 6h-1a6 6 0 0 1-5.4-3.4L4.5 13a1.6 1.6 0 0 1 2.8-1.5"/></svg><span>手を挙げる</span></button>
+<button id="callRemainBtn" class="callv2-action" title="残り時間をコメント欄に知らせる" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg></button>
+<button id="callInviteBtn" class="callv2-action" title="枠に招待" style="display:none;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M16 19v-1a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v1"/><circle cx="9.5" cy="7" r="3.5"/><path d="M19 8v6M22 11h-6"/></svg></button>
+<button id="callChatToggle" class="callv2-action" title="枠にコメント"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H9l-4 3.6a.8.8 0 0 1-1.3-.6V5.5Z"/></svg></button>
+</div>
+<div class="callv2-bottom">
+<button id="callSpeakerBtn" class="callv2-bbtn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18 6a8 8 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>スピーカー</span></button>
+<button id="callMuteBtn" class="callv2-bbtn"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="11" y="18" width="2" height="3.4" rx="1"/></svg><span>ミュート</span></button>
+<button id="callLeaveBtn" class="callv2-bbtn callv2-leave" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 17l5-5-5-5M15 12H3"/></svg><span>退出</span></button>
+</div>
+<div id="remoteAudios"></div>
+</div>
+</div>
+<script src="android-bridge.js"></script>
+<script src="banlist-client.js"></script>
+<script src="sched.js"></script>
+<script src="roomguard.js"></script>
+<script src="koemod.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
